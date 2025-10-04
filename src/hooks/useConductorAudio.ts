@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { RealtimeChannel } from '@supabase/supabase-js'
+import * as Tone from 'tone'
 import { supabase } from '../lib/supabase'
 import { channelNames } from '../realtime/channels'
 import { BassEngine } from '../instruments/bass/BassEngine'
@@ -26,11 +27,6 @@ export function useConductorAudio(roomId: string | null, transport: TransportSta
   const [kickFlash, setKickFlash] = useState(false)
   const [snareFlash, setSnareFlash] = useState(false)
   const [hatFlash, setHatFlash] = useState(false)
-
-  // Timeout refs to prevent memory leaks
-  const kickTimeoutRef = useRef<number | null>(null)
-  const snareTimeoutRef = useRef<number | null>(null)
-  const hatTimeoutRef = useRef<number | null>(null)
 
   // Audio engines
   const bassEngineRef = useRef<BassEngine | null>(null)
@@ -130,21 +126,30 @@ export function useConductorAudio(roomId: string | null, transport: TransportSta
     const step = stepIndex % 16
     setCurrentStep(step)
 
-    // Trigger drum hit flashes based on pattern - clear previous timeouts to prevent leaks
+    // Trigger drum hit flashes based on pattern - use Tone.Draw for synchronized updates
     if (step === 0 || step === 8) {
-      if (kickTimeoutRef.current) clearTimeout(kickTimeoutRef.current)
-      setKickFlash(true)
-      kickTimeoutRef.current = window.setTimeout(() => setKickFlash(false), 100)
+      Tone.Draw.schedule(() => {
+        setKickFlash(true)
+      }, time)
+      Tone.Draw.schedule(() => {
+        setKickFlash(false)
+      }, time + 0.1)
     }
     if (step === 4 || step === 12) {
-      if (snareTimeoutRef.current) clearTimeout(snareTimeoutRef.current)
-      setSnareFlash(true)
-      snareTimeoutRef.current = window.setTimeout(() => setSnareFlash(false), 100)
+      Tone.Draw.schedule(() => {
+        setSnareFlash(true)
+      }, time)
+      Tone.Draw.schedule(() => {
+        setSnareFlash(false)
+      }, time + 0.1)
     }
     if (step % 2 === 0) {
-      if (hatTimeoutRef.current) clearTimeout(hatTimeoutRef.current)
-      setHatFlash(true)
-      hatTimeoutRef.current = window.setTimeout(() => setHatFlash(false), 80)
+      Tone.Draw.schedule(() => {
+        setHatFlash(true)
+      }, time)
+      Tone.Draw.schedule(() => {
+        setHatFlash(false)
+      }, time + 0.08)
     }
 
     // Get current chord from progression
