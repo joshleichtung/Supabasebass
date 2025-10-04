@@ -22,6 +22,11 @@ export function useConductorAudio(roomId: string | null, transport: TransportSta
   const [audioStarted, setAudioStarted] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
 
+  // Drum hit flashes
+  const [kickFlash, setKickFlash] = useState(false)
+  const [snareFlash, setSnareFlash] = useState(false)
+  const [hatFlash, setHatFlash] = useState(false)
+
   // Audio engines
   const bassEngineRef = useRef<BassEngine | null>(null)
   const drumsEngineRef = useRef<DrumsEngine | null>(null)
@@ -117,7 +122,22 @@ export function useConductorAudio(roomId: string | null, transport: TransportSta
     if (!audioStarted) return
 
     // Update current step for visualizations
-    setCurrentStep(stepIndex % 16)
+    const step = stepIndex % 16
+    setCurrentStep(step)
+
+    // Trigger drum hit flashes based on pattern
+    if (step === 0 || step === 8) {
+      setKickFlash(true)
+      setTimeout(() => setKickFlash(false), 100)
+    }
+    if (step === 4 || step === 12) {
+      setSnareFlash(true)
+      setTimeout(() => setSnareFlash(false), 100)
+    }
+    if (step % 2 === 0) {
+      setHatFlash(true)
+      setTimeout(() => setHatFlash(false), 80)
+    }
 
     // Get current chord from progression
     const chordPattern = ['I', 'IV', 'V', 'I']
@@ -153,5 +173,8 @@ export function useConductorAudio(roomId: string | null, transport: TransportSta
     currentStep,
     bassEngine: bassEngineRef.current,
     drumsEngine: drumsEngineRef.current,
+    kickFlash,
+    snareFlash,
+    hatFlash,
   }
 }

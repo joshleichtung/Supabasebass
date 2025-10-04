@@ -176,52 +176,40 @@ export default function DrumsView() {
           width: '80px',
           height: '80px',
           borderRadius: '50%',
-          background: kickFlash ? 'rgba(255, 255, 255, 0.8)' : 'rgba(255, 255, 255, 0.1)',
-          border: '3px solid white',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '32px',
-          transition: 'all 0.1s',
-          transform: kickFlash ? 'scale(1.2)' : 'scale(1)',
-          boxShadow: kickFlash ? '0 0 30px rgba(255,255,255,0.8)' : 'none',
-        }}>
-          🥁
-        </div>
+          background: kickFlash
+            ? 'radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%)'
+            : 'rgba(255, 255, 255, 0.1)',
+          border: '2px solid rgba(255,255,255,0.3)',
+          transition: 'all 0.05s',
+          transform: kickFlash ? 'scale(1.3)' : 'scale(1)',
+          boxShadow: kickFlash ? '0 0 40px rgba(255,255,255,1)' : 'none',
+        }} />
         {/* Snare Flash */}
         <div style={{
           width: '80px',
           height: '80px',
           borderRadius: '50%',
-          background: snareFlash ? 'rgba(255, 215, 0, 0.8)' : 'rgba(255, 255, 255, 0.1)',
-          border: '3px solid white',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '32px',
-          transition: 'all 0.1s',
-          transform: snareFlash ? 'scale(1.2)' : 'scale(1)',
-          boxShadow: snareFlash ? '0 0 30px rgba(255,215,0,0.8)' : 'none',
-        }}>
-          💥
-        </div>
+          background: snareFlash
+            ? 'radial-gradient(circle, rgba(255,215,0,0.9) 0%, rgba(255,215,0,0.4) 50%, rgba(255,215,0,0) 100%)'
+            : 'rgba(255, 255, 255, 0.1)',
+          border: '2px solid rgba(255,255,255,0.3)',
+          transition: 'all 0.05s',
+          transform: snareFlash ? 'scale(1.3)' : 'scale(1)',
+          boxShadow: snareFlash ? '0 0 40px rgba(255,215,0,1)' : 'none',
+        }} />
         {/* HiHat Flash */}
         <div style={{
           width: '80px',
           height: '80px',
           borderRadius: '50%',
-          background: hatFlash ? 'rgba(147, 197, 253, 0.8)' : 'rgba(255, 255, 255, 0.1)',
-          border: '3px solid white',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '32px',
-          transition: 'all 0.1s',
-          transform: hatFlash ? 'scale(1.2)' : 'scale(1)',
-          boxShadow: hatFlash ? '0 0 30px rgba(147,197,253,0.8)' : 'none',
-        }}>
-          ✨
-        </div>
+          background: hatFlash
+            ? 'radial-gradient(circle, rgba(147,197,253,0.9) 0%, rgba(147,197,253,0.4) 50%, rgba(147,197,253,0) 100%)'
+            : 'rgba(255, 255, 255, 0.1)',
+          border: '2px solid rgba(255,255,255,0.3)',
+          transition: 'all 0.05s',
+          transform: hatFlash ? 'scale(1.3)' : 'scale(1)',
+          boxShadow: hatFlash ? '0 0 40px rgba(147,197,253,1)' : 'none',
+        }} />
       </div>
 
       {/* Transport Controls */}

@@ -22,7 +22,10 @@ export default function ConductorView() {
     drumsParams,
     currentStep,
     bassEngine,
-    drumsEngine
+    drumsEngine,
+    kickFlash,
+    snareFlash,
+    hatFlash,
   } = useConductorAudio(roomId, transport)
 
   const [soloedInstrument, setSoloedInstrument] = useState<string | null>(null)
@@ -188,24 +191,66 @@ export default function ConductorView() {
         </div>
       </div>
 
-      {/* Playhead */}
+      {/* Loop Progress */}
       <div style={{
         width: '100%',
-        height: '8px',
-        background: 'rgba(255,255,255,0.1)',
-        borderRadius: '4px',
-        overflow: 'hidden',
-        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
       }}>
+        {/* Bar indicator */}
         <div style={{
-          position: 'absolute',
-          left: 0,
-          top: 0,
-          height: '100%',
-          width: `${playheadProgress}%`,
-          background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)',
-          transition: 'width 0.1s linear',
-        }} />
+          display: 'flex',
+          justifyContent: 'center',
+          gap: '12px',
+          color: 'white',
+          fontSize: '14px',
+          fontWeight: '600',
+        }}>
+          {[1, 2, 3, 4].map((bar) => (
+            <div
+              key={bar}
+              style={{
+                padding: '4px 12px',
+                borderRadius: '4px',
+                background: (barIndex % 4) + 1 === bar
+                  ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                  : 'rgba(255,255,255,0.1)',
+                transition: 'all 0.2s',
+              }}
+            >
+              Bar {bar}
+            </div>
+          ))}
+        </div>
+
+        {/* 16-step progress */}
+        <div style={{
+          width: '100%',
+          height: '12px',
+          background: 'rgba(255,255,255,0.1)',
+          borderRadius: '6px',
+          overflow: 'hidden',
+          position: 'relative',
+          display: 'flex',
+        }}>
+          {Array.from({ length: 16 }).map((_, i) => (
+            <div
+              key={i}
+              style={{
+                flex: 1,
+                height: '100%',
+                background: i === currentStep
+                  ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                  : i < currentStep
+                  ? 'rgba(102, 126, 234, 0.3)'
+                  : 'transparent',
+                borderRight: i < 15 ? '1px solid rgba(0,0,0,0.2)' : 'none',
+                transition: 'background 0.05s',
+              }}
+            />
+          ))}
+        </div>
       </div>
 
       {/* Instrument Grid */}
@@ -341,6 +386,60 @@ export default function ConductorView() {
               opacity: 0.6,
             }}>
               <DrumsVisuals currentStep={currentStep} color="#f5576c" />
+            </div>
+          )}
+
+          {/* Drum Hit Indicators */}
+          {audioStarted && (
+            <div style={{
+              position: 'absolute',
+              top: '20px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              display: 'flex',
+              gap: '12px',
+              pointerEvents: 'none',
+              zIndex: 2,
+            }}>
+              {/* Kick */}
+              <div style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                background: kickFlash
+                  ? 'radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%)'
+                  : 'rgba(255, 255, 255, 0.15)',
+                border: '1px solid rgba(255,255,255,0.3)',
+                transition: 'all 0.05s',
+                transform: kickFlash ? 'scale(1.3)' : 'scale(1)',
+                boxShadow: kickFlash ? '0 0 30px rgba(255,255,255,1)' : 'none',
+              }} />
+              {/* Snare */}
+              <div style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                background: snareFlash
+                  ? 'radial-gradient(circle, rgba(255,215,0,0.9) 0%, rgba(255,215,0,0.4) 50%, rgba(255,215,0,0) 100%)'
+                  : 'rgba(255, 255, 255, 0.15)',
+                border: '1px solid rgba(255,255,255,0.3)',
+                transition: 'all 0.05s',
+                transform: snareFlash ? 'scale(1.3)' : 'scale(1)',
+                boxShadow: snareFlash ? '0 0 30px rgba(255,215,0,1)' : 'none',
+              }} />
+              {/* HiHat */}
+              <div style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                background: hatFlash
+                  ? 'radial-gradient(circle, rgba(147,197,253,0.9) 0%, rgba(147,197,253,0.4) 50%, rgba(147,197,253,0) 100%)'
+                  : 'rgba(255, 255, 255, 0.15)',
+                border: '1px solid rgba(255,255,255,0.3)',
+                transition: 'all 0.05s',
+                transform: hatFlash ? 'scale(1.3)' : 'scale(1)',
+                boxShadow: hatFlash ? '0 0 30px rgba(147,197,253,1)' : 'none',
+              }} />
             </div>
           )}
 
