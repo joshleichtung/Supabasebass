@@ -299,7 +299,7 @@ export default function ConductorView() {
             <div style={{
               position: 'absolute',
               left: `${bassParams.x * 100}%`,
-              top: `${(1 - bassParams.y) * 100}%`,
+              top: `${bassParams.y * 100}%`,
               transform: 'translate(-50%, -50%)',
               width: '24px',
               height: '24px',
@@ -398,7 +398,7 @@ export default function ConductorView() {
             <div style={{
               position: 'absolute',
               left: `${drumsParams.x * 100}%`,
-              top: `${(1 - drumsParams.y) * 100}%`,
+              top: `${drumsParams.y * 100}%`,
               transform: 'translate(-50%, -50%)',
               width: '24px',
               height: '24px',

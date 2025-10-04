@@ -24,7 +24,7 @@ export function useScheduler(
   }, [callback])
 
   useEffect(() => {
-    if (!enabled || !transportState.isPlaying) {
+    if (!enabled) {
       // Clean up loop if it exists
       if (loopRef.current) {
         loopRef.current.stop()
@@ -44,15 +44,23 @@ export function useScheduler(
       stepIndex++
     }, '16n')
 
-    loop.start(0)
-    Tone.getTransport().start()
-
     loopRef.current = loop
 
+    // Only start/stop loop based on isPlaying, don't touch Transport
+    if (transportState.isPlaying) {
+      loop.start(0)
+      // Only start transport if not already started
+      if (Tone.getTransport().state !== 'started') {
+        Tone.getTransport().start()
+      }
+    }
+
     return () => {
-      loop.stop()
-      loop.dispose()
-      Tone.getTransport().stop()
+      if (loop) {
+        loop.stop()
+        loop.dispose()
+      }
+      // Don't stop transport in cleanup - let other instances continue
       loopRef.current = null
     }
   }, [transportState.bpm, transportState.isPlaying, enabled])
