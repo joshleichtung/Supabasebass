@@ -58,12 +58,15 @@ export function useConductorAudio(roomId: string | null, transport: TransportSta
     bassChannel
       .on('broadcast', { event: 'instr:update' }, ({ payload }) => {
         // Update params immediately (no re-render, just ref update)
+        console.log('[Conductor] Received bass params:', payload)
         if (payload.params) {
           bassParamsRef.current = payload.params
           bassEngineRef.current?.setParams(payload.params.x, payload.params.y)
         }
       })
-      .subscribe()
+      .subscribe((status) => {
+        console.log('[Conductor] Bass channel status:', status)
+      })
 
     newChannels.push(bassChannel)
 
@@ -74,6 +77,7 @@ export function useConductorAudio(roomId: string | null, transport: TransportSta
 
     drumsChannel
       .on('broadcast', { event: 'instr:update' }, ({ payload }) => {
+        console.log('[Conductor] Received drums params:', payload)
         if (payload.params) {
           drumsParamsRef.current = payload.params
           const { x, y, fx } = payload.params
@@ -85,7 +89,9 @@ export function useConductorAudio(roomId: string | null, transport: TransportSta
           )
         }
       })
-      .subscribe()
+      .subscribe((status) => {
+        console.log('[Conductor] Drums channel status:', status)
+      })
 
     newChannels.push(drumsChannel)
 
