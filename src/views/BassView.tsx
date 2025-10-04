@@ -89,8 +89,6 @@ export default function BassView() {
 
   // Scheduler callback - plays muted bass locally for visualization
   const handleSchedule = useCallback((time: number, stepIndex: number) => {
-    if (!audioStarted) return
-
     bassEngineRef.current?.scheduleNote(
       time,
       stepIndex,
@@ -98,10 +96,10 @@ export default function BassView() {
       transport.scaleMode,
       'I' // Default to root for now
     )
-  }, [audioStarted, transport])
+  }, [transport])
 
-  // Use scheduler
-  useScheduler(handleSchedule, transport)
+  // Use scheduler (correct parameter order: transport, callback, enabled)
+  useScheduler(transport, handleSchedule, audioStarted && isPlaying)
 
   if (!roomId) {
     return <div className="loading">No room ID provided</div>

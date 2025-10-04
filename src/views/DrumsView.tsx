@@ -116,14 +116,12 @@ export default function DrumsView() {
 
   // Scheduler callback - plays muted drums locally for visualization
   const handleSchedule = useCallback((time: number, stepIndex: number) => {
-    if (!audioStarted) return
-
     setCurrentStep(stepIndex % 16) // Update visualization step
     drumsEngineRef.current?.scheduleHit(time, stepIndex)
-  }, [audioStarted])
+  }, [])
 
-  // Use scheduler
-  useScheduler(handleSchedule, transport)
+  // Use scheduler (correct parameter order: transport, callback, enabled)
+  useScheduler(transport, handleSchedule, audioStarted && isPlaying)
 
   if (!roomId) {
     return <div className="loading">No room ID provided</div>

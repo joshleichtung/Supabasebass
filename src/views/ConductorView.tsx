@@ -4,6 +4,8 @@ import { usePresence } from '../hooks/usePresence'
 import { useTransport } from '../hooks/useTransport'
 import { useConductorAudio } from '../hooks/useConductorAudio'
 import { useResolvedRoomId } from '../hooks/useResolvedRoomId'
+import BassVisuals from '../instruments/bass/BassVisuals'
+import DrumsVisuals from '../instruments/drums/DrumsVisuals'
 import type { PresenceState } from '../types/presence'
 
 export default function ConductorView() {
@@ -13,7 +15,15 @@ export default function ConductorView() {
 
   const { users, isHost } = usePresence(roomId, 'conductor')
   const { state: transport, bpm, barIndex, isPlaying } = useTransport(roomId, isHost)
-  const { audioStarted, startAudio } = useConductorAudio(roomId, transport)
+  const {
+    audioStarted,
+    startAudio,
+    bassParams,
+    drumsParams,
+    currentStep,
+    bassEngine,
+    drumsEngine
+  } = useConductorAudio(roomId, transport)
 
   const [soloedInstrument, setSoloedInstrument] = useState<string | null>(null)
   const [soloTimeout, setSoloTimeout] = useState<number | null>(null)
@@ -220,42 +230,84 @@ export default function ConductorView() {
             display: 'flex',
             flexDirection: 'column',
             gap: '20px',
+            position: 'relative',
+            overflow: 'hidden',
           }}
         >
-          <div style={{
-            fontSize: '64px',
-            textAlign: 'center',
-          }}>
-            🎸
-          </div>
-          <div style={{
-            color: 'white',
-            fontSize: '32px',
-            fontWeight: '700',
-            textAlign: 'center',
-          }}>
-            Bass
-          </div>
-          <div style={{
-            color: 'rgba(255,255,255,0.8)',
-            fontSize: '18px',
-            textAlign: 'center',
-          }}>
-            {usersByInstrument.bass.length > 0
-              ? `${usersByInstrument.bass.length} player${usersByInstrument.bass.length > 1 ? 's' : ''}`
-              : 'Waiting...'}
-          </div>
-          {soloedInstrument === 'bass' && (
+          {/* Visualization Layer */}
+          {audioStarted && bassEngine && (
             <div style={{
-              color: '#ffd700',
-              fontSize: '20px',
-              fontWeight: '700',
-              textAlign: 'center',
-              animation: 'pulse 2s infinite',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              pointerEvents: 'none',
+              opacity: 0.6,
             }}>
-              ⭐ SOLO
+              <BassVisuals synth={bassEngine.getSynth()} color="#6366f1" />
             </div>
           )}
+
+          {/* Content Layer */}
+          <div style={{
+            position: 'relative',
+            zIndex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '20px',
+          }}>
+            <div style={{
+              fontSize: '64px',
+              textAlign: 'center',
+            }}>
+              🎸
+            </div>
+            <div style={{
+              color: 'white',
+              fontSize: '32px',
+              fontWeight: '700',
+              textAlign: 'center',
+            }}>
+              Bass
+            </div>
+            <div style={{
+              color: 'rgba(255,255,255,0.8)',
+              fontSize: '18px',
+              textAlign: 'center',
+            }}>
+              {usersByInstrument.bass.length > 0
+                ? `${usersByInstrument.bass.length} player${usersByInstrument.bass.length > 1 ? 's' : ''}`
+                : 'Waiting...'}
+            </div>
+
+            {/* Cursor Position Indicator */}
+            {usersByInstrument.bass.length > 0 && (
+              <div style={{
+                background: 'rgba(255,255,255,0.1)',
+                borderRadius: '12px',
+                padding: '12px',
+                fontSize: '14px',
+                color: 'rgba(255,255,255,0.8)',
+                textAlign: 'center',
+              }}>
+                <div>Density: {(bassParams.x * 100).toFixed(0)}%</div>
+                <div>Complexity: {(bassParams.y * 100).toFixed(0)}%</div>
+              </div>
+            )}
+
+            {soloedInstrument === 'bass' && (
+              <div style={{
+                color: '#ffd700',
+                fontSize: '20px',
+                fontWeight: '700',
+                textAlign: 'center',
+                animation: 'pulse 2s infinite',
+              }}>
+                ⭐ SOLO
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Drums */}
@@ -273,42 +325,92 @@ export default function ConductorView() {
             display: 'flex',
             flexDirection: 'column',
             gap: '20px',
+            position: 'relative',
+            overflow: 'hidden',
           }}
         >
-          <div style={{
-            fontSize: '64px',
-            textAlign: 'center',
-          }}>
-            🥁
-          </div>
-          <div style={{
-            color: 'white',
-            fontSize: '32px',
-            fontWeight: '700',
-            textAlign: 'center',
-          }}>
-            Drums
-          </div>
-          <div style={{
-            color: 'rgba(255,255,255,0.8)',
-            fontSize: '18px',
-            textAlign: 'center',
-          }}>
-            {usersByInstrument.drums.length > 0
-              ? `${usersByInstrument.drums.length} player${usersByInstrument.drums.length > 1 ? 's' : ''}`
-              : 'Waiting...'}
-          </div>
-          {soloedInstrument === 'drums' && (
+          {/* Visualization Layer */}
+          {audioStarted && (
             <div style={{
-              color: '#ffd700',
-              fontSize: '20px',
-              fontWeight: '700',
-              textAlign: 'center',
-              animation: 'pulse 2s infinite',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              pointerEvents: 'none',
+              opacity: 0.6,
             }}>
-              ⭐ SOLO
+              <DrumsVisuals currentStep={currentStep} color="#f5576c" />
             </div>
           )}
+
+          {/* Content Layer */}
+          <div style={{
+            position: 'relative',
+            zIndex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '20px',
+          }}>
+            <div style={{
+              fontSize: '64px',
+              textAlign: 'center',
+            }}>
+              🥁
+            </div>
+            <div style={{
+              color: 'white',
+              fontSize: '32px',
+              fontWeight: '700',
+              textAlign: 'center',
+            }}>
+              Drums
+            </div>
+            <div style={{
+              color: 'rgba(255,255,255,0.8)',
+              fontSize: '18px',
+              textAlign: 'center',
+            }}>
+              {usersByInstrument.drums.length > 0
+                ? `${usersByInstrument.drums.length} player${usersByInstrument.drums.length > 1 ? 's' : ''}`
+                : 'Waiting...'}
+            </div>
+
+            {/* Cursor Position Indicator */}
+            {usersByInstrument.drums.length > 0 && (
+              <div style={{
+                background: 'rgba(255,255,255,0.1)',
+                borderRadius: '12px',
+                padding: '12px',
+                fontSize: '14px',
+                color: 'rgba(255,255,255,0.8)',
+                textAlign: 'center',
+              }}>
+                <div>Density: {(drumsParams.x * 100).toFixed(0)}%</div>
+                <div>Groove: {(drumsParams.y * 100).toFixed(0)}%</div>
+                {drumsParams.fx && (
+                  <>
+                    {drumsParams.fx.stutter && <div>⚡ Stutter ON</div>}
+                    {drumsParams.fx.filterAmount > 0 && (
+                      <div>🎛️ Filter: {((drumsParams.fx.filterAmount as number) * 100).toFixed(0)}%</div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+
+            {soloedInstrument === 'drums' && (
+              <div style={{
+                color: '#ffd700',
+                fontSize: '20px',
+                fontWeight: '700',
+                textAlign: 'center',
+                animation: 'pulse 2s infinite',
+              }}>
+                ⭐ SOLO
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Harmony (placeholder) */}

@@ -20,14 +20,15 @@ interface InstrumentParams {
  */
 export function useConductorAudio(roomId: string | null, transport: TransportState) {
   const [audioStarted, setAudioStarted] = useState(false)
+  const [currentStep, setCurrentStep] = useState(0)
 
   // Audio engines
   const bassEngineRef = useRef<BassEngine | null>(null)
   const drumsEngineRef = useRef<DrumsEngine | null>(null)
 
-  // Latest params from instruments (updated via realtime)
-  const bassParamsRef = useRef<InstrumentParams>({ x: 0.5, y: 0.5 })
-  const drumsParamsRef = useRef<InstrumentParams>({ x: 0.5, y: 0.5, fx: {} })
+  // Latest params from instruments (updated via realtime) - use state for reactivity
+  const [bassParams, setBassParams] = useState<InstrumentParams>({ x: 0.5, y: 0.5 })
+  const [drumsParams, setDrumsParams] = useState<InstrumentParams>({ x: 0.5, y: 0.5, fx: {} })
 
   // Channels
   const channelsRef = useRef<RealtimeChannel[]>([])
@@ -57,10 +58,9 @@ export function useConductorAudio(roomId: string | null, transport: TransportSta
 
     bassChannel
       .on('broadcast', { event: 'instr:update' }, ({ payload }) => {
-        // Update params immediately (no re-render, just ref update)
         console.log('[Conductor] Received bass params:', payload)
         if (payload.params) {
-          bassParamsRef.current = payload.params
+          setBassParams(payload.params)
           bassEngineRef.current?.setParams(payload.params.x, payload.params.y)
         }
       })
@@ -79,7 +79,7 @@ export function useConductorAudio(roomId: string | null, transport: TransportSta
       .on('broadcast', { event: 'instr:update' }, ({ payload }) => {
         console.log('[Conductor] Received drums params:', payload)
         if (payload.params) {
-          drumsParamsRef.current = payload.params
+          setDrumsParams(payload.params)
           const { x, y, fx } = payload.params
           drumsEngineRef.current?.setParams(
             x,
@@ -116,6 +116,9 @@ export function useConductorAudio(roomId: string | null, transport: TransportSta
   const handleSchedule = useCallback((time: number, stepIndex: number) => {
     if (!audioStarted) return
 
+    // Update current step for visualizations
+    setCurrentStep(stepIndex % 16)
+
     // Get current chord from progression
     const chordPattern = ['I', 'IV', 'V', 'I']
     const barIndex = Math.floor(stepIndex / 16)
@@ -145,7 +148,10 @@ export function useConductorAudio(roomId: string | null, transport: TransportSta
   return {
     audioStarted,
     startAudio,
-    bassParams: bassParamsRef.current,
-    drumsParams: drumsParamsRef.current,
+    bassParams,
+    drumsParams,
+    currentStep,
+    bassEngine: bassEngineRef.current,
+    drumsEngine: drumsEngineRef.current,
   }
 }
