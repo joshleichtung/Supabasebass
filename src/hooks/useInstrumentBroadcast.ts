@@ -13,6 +13,7 @@ export function useInstrumentBroadcast(
 ) {
   const channelRef = useRef<RealtimeChannel | null>(null)
   const throttleRef = useRef<number | null>(null)
+  const readyRef = useRef(false)
 
   useEffect(() => {
     if (!roomId) return
@@ -26,7 +27,14 @@ export function useInstrumentBroadcast(
 
     channel.subscribe((status) => {
       if (status === 'SUBSCRIBED') {
-        console.log(`Broadcasting on ${instrument} channel`)
+        console.log(`[${instrument}] Channel subscribed, ready to broadcast`)
+        readyRef.current = true
+      } else if (status === 'CHANNEL_ERROR') {
+        console.error(`[${instrument}] Channel error`)
+        readyRef.current = false
+      } else if (status === 'TIMED_OUT') {
+        console.error(`[${instrument}] Channel timed out`)
+        readyRef.current = false
       }
     })
 
@@ -35,6 +43,7 @@ export function useInstrumentBroadcast(
     return () => {
       channel.unsubscribe()
       channelRef.current = null
+      readyRef.current = false
     }
   }, [roomId, instrument])
 
@@ -44,7 +53,10 @@ export function useInstrumentBroadcast(
     y: number
     fx?: Record<string, unknown>
   }) => {
-    if (!channelRef.current) return
+    if (!channelRef.current || !readyRef.current) {
+      console.warn(`[${instrument}] Channel not ready, skipping broadcast`)
+      return
+    }
 
     // Throttle to 60fps
     if (throttleRef.current) return
