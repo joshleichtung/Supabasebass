@@ -10,6 +10,10 @@ export class DrumsEngine {
   private params = { x: 0.5, y: 0.5, stutter: false, filterAmount: 0 }
   private currentPattern: DrumPattern = { kick: [], snare: [], hat: [] }
   private stutterBuffer: Array<{ type: 'kick' | 'snare' | 'hat'; time: number }> = []
+  private lastKickTime = 0
+  private lastSnareTime = 0
+  private lastHatTime = 0
+  private minTriggerInterval = 0.005 // Minimum 5ms between triggers per drum
 
   constructor(muted = false) {
     // Create kick drum
@@ -105,32 +109,56 @@ export class DrumsEngine {
 
     // Kick
     if (this.currentPattern.kick[step]) {
-      this.kick.triggerAttackRelease('C1', '8n', hitTime)
+      // Prevent rapid triggers
+      if (hitTime - this.lastKickTime >= this.minTriggerInterval) {
+        try {
+          this.kick.triggerAttackRelease('C1', '8n', hitTime)
+          this.lastKickTime = hitTime
+        } catch (e) {
+          console.debug('Kick scheduling conflict:', e)
+        }
 
-      if (stutter) {
-        this.stutterBuffer.push({ type: 'kick', time: hitTime })
+        if (stutter) {
+          this.stutterBuffer.push({ type: 'kick', time: hitTime })
+        }
       }
     }
 
-    // Snare - ghost notes are quieter (positions 8, 16 and others)
+    // Snare - ghost notes are quieter (positions 4, 12 and others)
     if (this.currentPattern.snare[step]) {
-      // Main backbeat (positions 4, 12) at full volume, others are ghosts
-      const isBackbeat = step === 4 || step === 12
-      const velocity = isBackbeat ? 1.0 : 0.4 // Ghost notes much quieter
-      this.snare.triggerAttackRelease('8n', hitTime, velocity)
+      // Prevent rapid triggers
+      if (hitTime - this.lastSnareTime >= this.minTriggerInterval) {
+        // Main backbeat (positions 4, 12) at full volume, others are ghosts
+        const isBackbeat = step === 4 || step === 12
+        const velocity = isBackbeat ? 1.0 : 0.4 // Ghost notes much quieter
+        try {
+          this.snare.triggerAttackRelease('8n', hitTime, velocity)
+          this.lastSnareTime = hitTime
+        } catch (e) {
+          console.debug('Snare scheduling conflict:', e)
+        }
 
-      if (stutter) {
-        this.stutterBuffer.push({ type: 'snare', time: hitTime })
+        if (stutter) {
+          this.stutterBuffer.push({ type: 'snare', time: hitTime })
+        }
       }
     }
 
     // Hi-hat - vary velocity for natural feel
     if (this.currentPattern.hat[step]) {
-      const velocity = 0.4 + Math.random() * 0.3 // Vary hi-hat velocity
-      this.hihat.triggerAttackRelease('32n', hitTime, velocity)
+      // Prevent rapid triggers
+      if (hitTime - this.lastHatTime >= this.minTriggerInterval) {
+        const velocity = 0.4 + Math.random() * 0.3 // Vary hi-hat velocity
+        try {
+          this.hihat.triggerAttackRelease('32n', hitTime, velocity)
+          this.lastHatTime = hitTime
+        } catch (e) {
+          console.debug('HiHat scheduling conflict:', e)
+        }
 
-      if (stutter) {
-        this.stutterBuffer.push({ type: 'hat', time: hitTime })
+        if (stutter) {
+          this.stutterBuffer.push({ type: 'hat', time: hitTime })
+        }
       }
     }
 

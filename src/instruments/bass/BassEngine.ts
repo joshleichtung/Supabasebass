@@ -7,6 +7,8 @@ export class BassEngine {
   private lastNote = 48 // C2
   private isPlaying = false
   private params = { x: 0.5, y: 0.5 }
+  private lastTriggerTime = 0
+  private minTriggerInterval = 0.01 // Minimum 10ms between triggers
 
   constructor(muted = false) {
     // Create volume node for muting control
@@ -99,8 +101,19 @@ export class BassEngine {
     // Convert MIDI to frequency
     const freq = Tone.Frequency(midiNote, 'midi').toFrequency()
 
-    // Trigger note
-    this.synth.triggerAttackRelease(freq, '16n', time, 0.8)
+    // Prevent rapid triggers - ensure minimum time between notes
+    if (time - this.lastTriggerTime < this.minTriggerInterval) {
+      return
+    }
+
+    // Trigger note - wrap in try-catch to handle timing conflicts
+    try {
+      this.synth.triggerAttackRelease(freq, '16n', time, 0.8)
+      this.lastTriggerTime = time
+    } catch (e) {
+      // Silently ignore timing conflicts when multiple schedulers are running
+      console.debug('Bass note scheduling conflict (expected with multiple windows):', e)
+    }
   }
 
   /**

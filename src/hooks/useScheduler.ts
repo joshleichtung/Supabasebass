@@ -17,6 +17,7 @@ export function useScheduler(
 ) {
   const loopRef = useRef<Tone.Loop | null>(null)
   const callbackRef = useRef(callback)
+  const isTransitioningRef = useRef(false)
 
   // Keep callback ref updated
   useEffect(() => {
@@ -24,43 +25,89 @@ export function useScheduler(
   }, [callback])
 
   useEffect(() => {
+    // Prevent rapid re-creation during transitions
+    if (isTransitioningRef.current) return
+
     if (!enabled) {
       // Clean up loop if it exists
       if (loopRef.current) {
-        loopRef.current.stop()
-        loopRef.current.dispose()
+        isTransitioningRef.current = true
+        const currentLoop = loopRef.current
+
+        // Stop loop immediately
+        currentLoop.stop()
+
+        // Small delay before disposal to ensure clean stop
+        setTimeout(() => {
+          currentLoop.dispose()
+          isTransitioningRef.current = false
+        }, 50)
+
         loopRef.current = null
       }
+      return
+    }
+
+    // Clean up existing loop before creating new one
+    if (loopRef.current) {
+      isTransitioningRef.current = true
+      const oldLoop = loopRef.current
+      oldLoop.stop()
+
+      // Wait for clean stop before creating new loop
+      setTimeout(() => {
+        oldLoop.dispose()
+        isTransitioningRef.current = false
+      }, 50)
+
+      loopRef.current = null
       return
     }
 
     // Sync Tone.js transport with our BPM
     Tone.getTransport().bpm.value = transportState.bpm
 
-    // Create loop for 16th notes
+    // Create loop for 16th notes with safeguards
     let stepIndex = 0
     const loop = new Tone.Loop((time) => {
-      callbackRef.current(time, stepIndex % 16)
-      stepIndex++
+      // Skip callback if transitioning
+      if (!isTransitioningRef.current && loopRef.current) {
+        try {
+          callbackRef.current(time, stepIndex % 16)
+          stepIndex++
+        } catch (e) {
+          console.debug('Scheduler callback error (transitioning):', e)
+        }
+      }
     }, '16n')
 
     loopRef.current = loop
 
-    // Only start/stop loop based on isPlaying, don't touch Transport
+    // Only start/stop loop based on isPlaying
     if (transportState.isPlaying) {
-      loop.start(0)
-      // Only start transport if not already started
-      if (Tone.getTransport().state !== 'started') {
-        Tone.getTransport().start()
-      }
+      // Small delay to ensure clean start
+      setTimeout(() => {
+        if (loopRef.current === loop) {
+          loop.start(0)
+          // Only start transport if not already started
+          if (Tone.getTransport().state !== 'started') {
+            Tone.getTransport().start()
+          }
+        }
+      }, 10)
     }
 
     return () => {
       if (loop) {
+        isTransitioningRef.current = true
         loop.stop()
-        loop.dispose()
+
+        // Delay disposal to ensure clean shutdown
+        setTimeout(() => {
+          loop.dispose()
+          isTransitioningRef.current = false
+        }, 50)
       }
-      // Don't stop transport in cleanup - let other instances continue
       loopRef.current = null
     }
   }, [transportState.bpm, transportState.isPlaying, enabled])
