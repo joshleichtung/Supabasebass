@@ -6,6 +6,7 @@ import { channelNames } from '../realtime/channels'
 import { BassEngine } from '../instruments/bass/BassEngine'
 import { DrumsEngine } from '../instruments/drums/DrumsEngine'
 import { useScheduler } from './useScheduler'
+import { usePeriodicCleanup } from './usePeriodicCleanup'
 import type { TransportState } from '../lib/transport'
 
 interface InstrumentParams {
@@ -167,6 +168,9 @@ export function useConductorAudio(roomId: string | null, transport: TransportSta
 
   // Attach scheduler
   useScheduler(transport, handleSchedule, audioStarted)
+
+  // Periodic cleanup to prevent long-session memory buildup
+  usePeriodicCleanup(audioStarted, 10)
 
   // Cleanup flash timeouts on unmount
   useEffect(() => {
