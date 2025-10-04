@@ -87,11 +87,46 @@ export default function LandingView() {
     )
   }
 
+  const copyRoomCode = () => {
+    navigator.clipboard.writeText(roomId)
+    alert(`Room code "${roomId}" copied to clipboard!`)
+  }
+
   if (roomId) {
     return (
       <div className="fullscreen" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '20px' }}>
         <h1 style={{ color: 'white', fontSize: '48px' }}>BassBase</h1>
-        <p style={{ color: 'white', fontSize: '18px' }}>Room: {roomId}</p>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          background: 'rgba(255,255,255,0.1)',
+          padding: '16px 24px',
+          borderRadius: '12px',
+          backdropFilter: 'blur(10px)'
+        }}>
+          <span style={{ color: 'white', fontSize: '24px', fontWeight: '700', letterSpacing: '2px', userSelect: 'all' }}>
+            {roomId}
+          </span>
+          <button
+            onClick={copyRoomCode}
+            style={{
+              padding: '8px 16px',
+              fontSize: '14px',
+              borderRadius: '8px',
+              border: 'none',
+              background: 'rgba(255,255,255,0.2)',
+              color: 'white',
+              cursor: 'pointer',
+              fontWeight: '600',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+          >
+            📋 Copy
+          </button>
+        </div>
         <div style={{ display: 'flex', gap: '16px' }}>
           <button
             onClick={() => navigate(`/bass?r=${roomId}`)}
