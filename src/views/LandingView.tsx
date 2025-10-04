@@ -9,6 +9,7 @@ export default function LandingView() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [shareCode, setShareCode] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
 
   const roomId = searchParams.get('r')
 
@@ -99,7 +100,8 @@ export default function LandingView() {
   const copyRoomCode = () => {
     if (shareCode) {
       navigator.clipboard.writeText(shareCode)
-      alert(`Room code "${shareCode}" copied to clipboard!`)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
     }
   }
 
@@ -126,16 +128,21 @@ export default function LandingView() {
               fontSize: '14px',
               borderRadius: '8px',
               border: 'none',
-              background: 'rgba(255,255,255,0.2)',
+              background: copied ? '#10b981' : 'rgba(255,255,255,0.2)',
               color: 'white',
               cursor: 'pointer',
               fontWeight: '600',
-              transition: 'all 0.2s'
+              transition: 'all 0.2s',
+              minWidth: '90px'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
-            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+            onMouseEnter={(e) => {
+              if (!copied) e.currentTarget.style.background = 'rgba(255,255,255,0.3)'
+            }}
+            onMouseLeave={(e) => {
+              if (!copied) e.currentTarget.style.background = 'rgba(255,255,255,0.2)'
+            }}
           >
-            📋 Copy
+            {copied ? '✓ Copied!' : '📋 Copy'}
           </button>
         </div>
         <div style={{ display: 'flex', gap: '16px' }}>
