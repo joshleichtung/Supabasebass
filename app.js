@@ -3,9 +3,9 @@
 // Demonstrates: Broadcast + Presence
 // ========================================
 
-// Configuration - Connected to your Supabase Cloud project
-const SUPABASE_URL = 'https://elikhejyygxjxqswnues.supabase.co'
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVsaWtoZWp5eWd4anhxc3dudWVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1NTUzMjksImV4cCI6MjA3NTEzMTMyOX0.7a-gGdxANOc9MkNEknDr8V2ouhc59INSGCgqFdMWQEs'
+// Configuration - Local Supabase instance
+const SUPABASE_URL = 'http://127.0.0.1:54321'
+const SUPABASE_ANON_KEY = 'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH'
 
 // Initialize Supabase client
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
