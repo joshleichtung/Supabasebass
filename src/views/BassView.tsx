@@ -24,6 +24,7 @@ export default function BassView() {
   const [audioStarted, setAudioStarted] = useState(false)
   const saveTimeoutRef = useRef<number | null>(null)
   const bassEngineRef = useRef<BassEngine | null>(null)
+  const lastBroadcastParamsRef = useRef({ x: 0.5, y: 0.5 })
 
   // Initialize muted bass engine for visualization
   useEffect(() => {
@@ -62,13 +63,18 @@ export default function BassView() {
 
   // Handle XY pad movement - broadcast and update local engine params
   const handleMove = useCallback((x: number, y: number) => {
+    // Always update local state and engine for smooth feedback
     setParams({ x, y })
-
-    // Update local engine params for visualization
     bassEngineRef.current?.setParams(x, y)
 
-    // Broadcast to conductor immediately
-    broadcastParams({ x, y })
+    // Only broadcast if position changed meaningfully (prevents flood)
+    const prev = lastBroadcastParamsRef.current
+    const threshold = 0.005 // 0.5% minimum change
+
+    if (Math.abs(x - prev.x) >= threshold || Math.abs(y - prev.y) >= threshold) {
+      broadcastParams({ x, y })
+      lastBroadcastParamsRef.current = { x, y }
+    }
 
     // Start audio on first interaction (for visualization)
     if (!audioStarted) {

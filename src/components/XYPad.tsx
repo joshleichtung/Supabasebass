@@ -39,7 +39,7 @@ export default function XYPad({ onMove, color = '#667eea', children }: XYPadProp
   }, [handleMove])
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    // Track cursor even when not pressed for hover effect
+    // Track cursor on hover for smooth control
     handleMove(e.clientX, e.clientY)
   }, [handleMove])
 

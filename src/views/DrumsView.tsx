@@ -30,6 +30,7 @@ export default function DrumsView() {
   const [hatFlash, setHatFlash] = useState(false)
   const saveTimeoutRef = useRef<number | null>(null)
   const drumsEngineRef = useRef<DrumsEngine | null>(null)
+  const lastBroadcastParamsRef = useRef({ x: 0.5, y: 0.5 })
 
   // Flash timeout refs for cleanup
   const kickTimeoutRef = useRef<number | null>(null)
@@ -77,13 +78,18 @@ export default function DrumsView() {
 
   // Handle XY pad movement - broadcast and update local engine params
   const handleMove = useCallback((x: number, y: number) => {
+    // Always update local state and engine for smooth feedback
     setParams({ x, y })
-
-    // Update local engine params for visualization
     drumsEngineRef.current?.setParams(x, y, stutter, filterAmount)
 
-    // Broadcast to conductor
-    broadcastParams({ x, y, fx: { stutter, filterAmount } })
+    // Only broadcast if position changed meaningfully (prevents flood)
+    const prev = lastBroadcastParamsRef.current
+    const threshold = 0.005 // 0.5% minimum change
+
+    if (Math.abs(x - prev.x) >= threshold || Math.abs(y - prev.y) >= threshold) {
+      broadcastParams({ x, y, fx: { stutter, filterAmount } })
+      lastBroadcastParamsRef.current = { x, y }
+    }
 
     // Start audio on first interaction (for visualization)
     if (!audioStarted) {
