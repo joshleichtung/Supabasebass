@@ -33,7 +33,6 @@ export function useTransport(roomId: string | null, isHost: boolean, initialBpm 
     // Listen for transport state updates
     channel
       .on('broadcast', { event: 'transport:state' }, ({ payload }: { payload: TransportState }) => {
-        console.log('Received transport state:', payload)
         setState(payload)
       })
       .on('broadcast', { event: 'transport:pulse' }, ({ payload }: { payload: {
@@ -55,11 +54,7 @@ export function useTransport(roomId: string | null, isHost: boolean, initialBpm 
           isPlaying: payload.isPlaying,
         }))
       })
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          console.log('Subscribed to transport channel, isHost:', isHost)
-        }
-      })
+      .subscribe()
 
     channelRef.current = channel
 
@@ -79,8 +74,6 @@ export function useTransport(roomId: string | null, isHost: boolean, initialBpm 
       }
       return
     }
-
-    console.log('Starting heartbeat as host')
 
     // Send heartbeat every second
     heartbeatIntervalRef.current = window.setInterval(() => {

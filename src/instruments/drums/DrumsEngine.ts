@@ -6,8 +6,9 @@ export class DrumsEngine {
   private snare: Tone.NoiseSynth
   private hihat: Tone.MetalSynth
   private filter: Tone.Filter
+  private delay: Tone.FeedbackDelay
   private isPlaying = false
-  private params = { x: 0.5, y: 0.5, stutter: false, filterAmount: 0 }
+  private params = { x: 0.5, y: 0.5, stutter: false, filterAmount: 0, delayAmount: 0 }
   private currentPattern: DrumPattern = { kick: [], snare: [], hat: [] }
   private stutterBuffer: Array<{ type: 'kick' | 'snare' | 'hat'; time: number }> = []
   private lastKickTime = 0
@@ -47,11 +48,19 @@ export class DrumsEngine {
       rolloff: -24
     })
 
-    // Route through filter
+    // Create delay for FX
+    this.delay = new Tone.FeedbackDelay({
+      delayTime: '8n',
+      feedback: 0,
+      wet: 0,
+    })
+
+    // Route through filter then delay
     this.kick.connect(this.filter)
     this.snare.connect(this.filter)
     this.hihat.connect(this.filter)
-    this.filter.toDestination()
+    this.filter.connect(this.delay)
+    this.delay.toDestination()
 
     // Set volumes - mute for visualization-only (instrument views), audible for conductor
     if (muted) {
@@ -72,7 +81,6 @@ export class DrumsEngine {
     await Tone.start()
     this.isPlaying = true
     this.currentPattern = morphPattern(this.params.x, this.params.y)
-    console.log('Drums engine started')
   }
 
   /**
@@ -85,8 +93,8 @@ export class DrumsEngine {
   /**
    * Update XY parameters and FX
    */
-  setParams(x: number, y: number, stutter = false, filterAmount = 0) {
-    this.params = { x, y, stutter, filterAmount }
+  setParams(x: number, y: number, stutter = false, filterAmount = 0, delayAmount = 0) {
+    this.params = { x, y, stutter, filterAmount, delayAmount }
     this.currentPattern = morphPattern(x, y) // Pass both X and Y for density and groove
 
     // Update filter cutoff based on filterAmount - smooth ramp to avoid clicks
@@ -94,6 +102,12 @@ export class DrumsEngine {
     const maxFreq = 20000
     const targetFreq = minFreq + (maxFreq - minFreq) * (1 - filterAmount)
     this.filter.frequency.rampTo(targetFreq, 0.05) // 50ms smooth ramp
+
+    // Update delay based on delayAmount
+    this.delay.set({
+      wet: delayAmount * 0.5, // Max 50% wet
+      feedback: delayAmount * 0.6, // Max 60% feedback
+    })
   }
 
   /**
@@ -206,5 +220,6 @@ export class DrumsEngine {
     this.snare.dispose()
     this.hihat.dispose()
     this.filter.dispose()
+    this.delay.dispose()
   }
 }

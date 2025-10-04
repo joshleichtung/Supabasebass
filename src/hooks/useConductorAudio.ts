@@ -22,12 +22,16 @@ interface InstrumentParams {
  */
 export function useConductorAudio(roomId: string | null, transport: TransportState) {
   const [audioStarted, setAudioStarted] = useState(false)
-  const [currentStep, setCurrentStep] = useState(0)
 
-  // Drum hit flashes
-  const [kickFlash, setKickFlash] = useState(false)
-  const [snareFlash, setSnareFlash] = useState(false)
-  const [hatFlash, setHatFlash] = useState(false)
+  // Use refs instead of state for visual feedback (decouples from React render cycle)
+  const currentStepRef = useRef(0)
+  const kickFlashRef = useRef(false)
+  const snareFlashRef = useRef(false)
+  const hatFlashRef = useRef(false)
+
+  // Force update state for visuals (only updates when ref changes)
+  const [, forceUpdate] = useState({})
+  const rafRef = useRef<number | null>(null)
 
   // Flash timeout refs for cleanup
   const kickTimeoutRef = useRef<number | null>(null)
@@ -41,6 +45,10 @@ export function useConductorAudio(roomId: string | null, transport: TransportSta
   // Latest params from instruments (updated via realtime) - use state for reactivity
   const [bassParams, setBassParams] = useState<InstrumentParams>({ x: 0.5, y: 0.5 })
   const [drumsParams, setDrumsParams] = useState<InstrumentParams>({ x: 0.5, y: 0.5, fx: {} })
+
+  // FX state (controlled locally on conductor)
+  const [bassFX, setBassFX] = useState({ autoWah: false, filterAmount: 0, delayAmount: 0 })
+  const [drumsFX, setDrumsFX] = useState({ stutter: false, filterAmount: 0, delayAmount: 0 })
 
   // Channels
   const channelsRef = useRef<RealtimeChannel[]>([])
@@ -72,7 +80,6 @@ export function useConductorAudio(roomId: string | null, transport: TransportSta
       .on('broadcast', { event: 'instr:update' }, ({ payload }) => {
         if (payload.params) {
           setBassParams(payload.params)
-          bassEngineRef.current?.setParams(payload.params.x, payload.params.y)
         }
       })
       .subscribe()
@@ -88,13 +95,6 @@ export function useConductorAudio(roomId: string | null, transport: TransportSta
       .on('broadcast', { event: 'instr:update' }, ({ payload }) => {
         if (payload.params) {
           setDrumsParams(payload.params)
-          const { x, y, fx } = payload.params
-          drumsEngineRef.current?.setParams(
-            x,
-            y,
-            fx?.stutter || false,
-            fx?.filterAmount || 0
-          )
         }
       })
       .subscribe()
@@ -109,6 +109,26 @@ export function useConductorAudio(roomId: string | null, transport: TransportSta
     }
   }, [roomId])
 
+  // Apply bass params and FX to engine
+  useEffect(() => {
+    if (bassEngineRef.current) {
+      bassEngineRef.current.setParams(bassParams.x, bassParams.y, bassFX)
+    }
+  }, [bassParams, bassFX])
+
+  // Apply drums params and FX to engine
+  useEffect(() => {
+    if (drumsEngineRef.current) {
+      drumsEngineRef.current.setParams(
+        drumsParams.x,
+        drumsParams.y,
+        drumsFX.stutter,
+        drumsFX.filterAmount,
+        drumsFX.delayAmount
+      )
+    }
+  }, [drumsParams, drumsFX])
+
   // Start audio (requires user interaction)
   const startAudio = useCallback(async () => {
     if (audioStarted) return
@@ -118,29 +138,53 @@ export function useConductorAudio(roomId: string | null, transport: TransportSta
     setAudioStarted(true)
   }, [audioStarted])
 
-  // Scheduler callback - plays all instruments locally
+  // RAF loop for visual updates (decoupled from audio)
+  useEffect(() => {
+    if (!audioStarted) return
+
+    const updateVisuals = () => {
+      forceUpdate({})
+      rafRef.current = requestAnimationFrame(updateVisuals)
+    }
+
+    rafRef.current = requestAnimationFrame(updateVisuals)
+
+    return () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current)
+      }
+    }
+  }, [audioStarted])
+
+  // Scheduler callback - plays all instruments locally (uses refs, not state)
   const handleSchedule = useCallback((time: number, stepIndex: number) => {
     if (!audioStarted) return
 
-    // Update current step for visualizations
+    // Update current step ref (no React render)
     const step = stepIndex % 16
-    setCurrentStep(step)
+    currentStepRef.current = step
 
-    // Trigger drum hit flashes - direct state updates (no Tone.Draw to avoid queue buildup)
+    // Trigger drum hit flashes using refs (no React render)
     if (step === 0 || step === 8) {
-      setKickFlash(true)
+      kickFlashRef.current = true
       if (kickTimeoutRef.current) clearTimeout(kickTimeoutRef.current)
-      kickTimeoutRef.current = window.setTimeout(() => setKickFlash(false), 100)
+      kickTimeoutRef.current = window.setTimeout(() => {
+        kickFlashRef.current = false
+      }, 100)
     }
     if (step === 4 || step === 12) {
-      setSnareFlash(true)
+      snareFlashRef.current = true
       if (snareTimeoutRef.current) clearTimeout(snareTimeoutRef.current)
-      snareTimeoutRef.current = window.setTimeout(() => setSnareFlash(false), 100)
+      snareTimeoutRef.current = window.setTimeout(() => {
+        snareFlashRef.current = false
+      }, 100)
     }
     if (step % 2 === 0) {
-      setHatFlash(true)
+      hatFlashRef.current = true
       if (hatTimeoutRef.current) clearTimeout(hatTimeoutRef.current)
-      hatTimeoutRef.current = window.setTimeout(() => setHatFlash(false), 80)
+      hatTimeoutRef.current = window.setTimeout(() => {
+        hatFlashRef.current = false
+      }, 80)
     }
 
     // Get current chord from progression
@@ -186,11 +230,15 @@ export function useConductorAudio(roomId: string | null, transport: TransportSta
     startAudio,
     bassParams,
     drumsParams,
-    currentStep,
+    currentStep: currentStepRef.current,
     bassEngine: bassEngineRef.current,
     drumsEngine: drumsEngineRef.current,
-    kickFlash,
-    snareFlash,
-    hatFlash,
+    kickFlash: kickFlashRef.current,
+    snareFlash: snareFlashRef.current,
+    hatFlash: hatFlashRef.current,
+    bassFX,
+    setBassFX,
+    drumsFX,
+    setDrumsFX,
   }
 }

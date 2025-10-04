@@ -23,6 +23,13 @@ export function useScheduler(
     callbackRef.current = callback
   }, [callback])
 
+  // Separate effect for BPM updates - doesn't restart the loop
+  useEffect(() => {
+    if (enabled && loopRef.current) {
+      Tone.getTransport().bpm.value = transportState.bpm
+    }
+  }, [transportState.bpm, enabled])
+
   useEffect(() => {
     if (!enabled) {
       // Clean up loop immediately if it exists
@@ -41,7 +48,7 @@ export function useScheduler(
       loopRef.current = null
     }
 
-    // Sync Tone.js transport with our BPM
+    // Sync Tone.js transport with our BPM (initial)
     Tone.getTransport().bpm.value = transportState.bpm
 
     // Create loop for 16th notes
@@ -74,5 +81,5 @@ export function useScheduler(
       }
       loopRef.current = null
     }
-  }, [transportState.bpm, transportState.isPlaying, enabled])
+  }, [transportState.isPlaying, enabled])
 }

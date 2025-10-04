@@ -17,7 +17,7 @@ export default function BassView() {
   const roomId = useResolvedRoomId(roomCode) // Resolve short code to UUID
 
   const { isHost, userCount } = usePresence(roomId, 'bass')
-  const { state: transport, togglePlay, isPlaying, bpm } = useTransport(roomId, isHost)
+  const { state: transport } = useTransport(roomId, isHost)
   const { broadcastParams } = useInstrumentBroadcast(roomId, 'bass')
 
   const [params, setParams] = useState({ x: 0.5, y: 0.5 })
@@ -61,11 +61,10 @@ export default function BassView() {
     }
   }, [audioStarted])
 
-  // Handle XY pad movement - broadcast and update local engine params
+  // Handle XY pad movement - broadcast only XY (FX controlled from conductor)
   const handleMove = useCallback((x: number, y: number) => {
-    // Always update local state and engine for smooth feedback
+    // Always update local state for smooth feedback
     setParams({ x, y })
-    bassEngineRef.current?.setParams(x, y)
 
     // Only broadcast if position changed meaningfully (prevents flood)
     const prev = lastBroadcastParamsRef.current
@@ -120,26 +119,6 @@ export default function BassView() {
         position: 'relative',
       }}
     >
-      {/* Transport Controls */}
-      <div className="transport-controls">
-        <button
-          className="transport-button"
-          onClick={(e) => {
-            e.stopPropagation()
-            if (isHost) togglePlay()
-          }}
-          disabled={!isHost}
-          style={{ opacity: isHost ? 1 : 0.5 }}
-        >
-          {isPlaying ? '⏸️' : '▶️'}
-        </button>
-        <div className="transport-info">
-          <div>Tempo: {bpm} BPM</div>
-          <div>Key: {transport.keyRoot} {transport.scaleMode}</div>
-          {isHost && <div style={{ color: '#ffd700', fontWeight: '700' }}>⭐ HOST</div>}
-        </div>
-      </div>
-
       {/* Presence */}
       <div className="presence-list">
         <div style={{ fontWeight: '700', marginBottom: '8px' }}>

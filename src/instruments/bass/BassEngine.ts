@@ -4,17 +4,52 @@ import { bassNoteFor } from './engine' // Existing stub
 export class BassEngine {
   private synth: Tone.MonoSynth
   private volume: Tone.Volume
+  private autoWah: Tone.AutoWah
+  private filter: Tone.Filter
+  private delay: Tone.FeedbackDelay
   private lastNote = 48 // C2
   private isPlaying = false
   private params = { x: 0.5, y: 0.5 }
   private lastTriggerTime = 0
   private minTriggerInterval = 0.01 // Minimum 10ms between triggers
 
+  // FX state
+  private fxState = {
+    autoWah: false,
+    filterAmount: 0,
+    delayAmount: 0,
+  }
+
   constructor(muted = false) {
     // Create volume node for muting control
     this.volume = new Tone.Volume(muted ? -Infinity : -8).toDestination()
 
-    // Create bass synth - connect to volume node
+    // Create effects chain
+    this.autoWah = new Tone.AutoWah({
+      baseFrequency: 100,
+      octaves: 6,
+      sensitivity: 0,
+      Q: 2,
+      gain: 2,
+      follower: {
+        attack: 0.3,
+        release: 0.5,
+      },
+    })
+
+    this.filter = new Tone.Filter({
+      type: 'lowpass',
+      frequency: 20000, // Fully open by default
+      Q: 1,
+    })
+
+    this.delay = new Tone.FeedbackDelay({
+      delayTime: '8n',
+      feedback: 0,
+      wet: 0,
+    })
+
+    // Create bass synth - connect through effects chain
     this.synth = new Tone.MonoSynth({
       oscillator: {
         type: 'sawtooth'
@@ -33,7 +68,11 @@ export class BassEngine {
         baseFrequency: 100,
         octaves: 3.5
       }
-    }).connect(this.volume)
+    })
+      .connect(this.autoWah)
+      .connect(this.filter)
+      .connect(this.delay)
+      .connect(this.volume)
   }
 
   /**
@@ -42,7 +81,6 @@ export class BassEngine {
   async start() {
     await Tone.start()
     this.isPlaying = true
-    console.log('Bass engine started')
   }
 
   /**
@@ -54,10 +92,38 @@ export class BassEngine {
   }
 
   /**
-   * Update XY parameters
+   * Update XY parameters and FX
    */
-  setParams(x: number, y: number) {
+  setParams(x: number, y: number, fx?: {
+    autoWah?: boolean
+    filterAmount?: number
+    delayAmount?: number
+  }) {
     this.params = { x, y }
+
+    if (fx) {
+      // Auto-wah toggle
+      if (fx.autoWah !== undefined && fx.autoWah !== this.fxState.autoWah) {
+        this.fxState.autoWah = fx.autoWah
+        this.autoWah.set({ sensitivity: fx.autoWah ? -40 : 0 })
+      }
+
+      // Filter sweep (0 = open, 1 = closed)
+      if (fx.filterAmount !== undefined && fx.filterAmount !== this.fxState.filterAmount) {
+        this.fxState.filterAmount = fx.filterAmount
+        const filterFreq = 20000 * (1 - fx.filterAmount) + 200 * fx.filterAmount
+        this.filter.set({ frequency: filterFreq })
+      }
+
+      // Delay amount (0 = off, 1 = max)
+      if (fx.delayAmount !== undefined && fx.delayAmount !== this.fxState.delayAmount) {
+        this.fxState.delayAmount = fx.delayAmount
+        this.delay.set({
+          wet: fx.delayAmount * 0.5, // Max 50% wet
+          feedback: fx.delayAmount * 0.6, // Max 60% feedback
+        })
+      }
+    }
   }
 
   /**
@@ -127,6 +193,9 @@ export class BassEngine {
    */
   dispose() {
     this.synth.dispose()
+    this.autoWah.dispose()
+    this.filter.dispose()
+    this.delay.dispose()
     this.volume.dispose()
   }
 }

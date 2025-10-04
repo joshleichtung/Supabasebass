@@ -14,7 +14,7 @@ export default function ConductorView() {
   const roomId = useResolvedRoomId(roomCode) // Resolve short code to UUID
 
   const { users, isHost } = usePresence(roomId, 'conductor')
-  const { state: transport, bpm, barIndex, isPlaying } = useTransport(roomId, isHost)
+  const { state: transport, togglePlay, setBpm, bpm, barIndex, isPlaying } = useTransport(roomId, isHost)
   const {
     audioStarted,
     startAudio,
@@ -26,6 +26,10 @@ export default function ConductorView() {
     kickFlash,
     snareFlash,
     hatFlash,
+    bassFX,
+    setBassFX,
+    drumsFX,
+    setDrumsFX,
   } = useConductorAudio(roomId, transport)
 
   const [soloedInstrument, setSoloedInstrument] = useState<string | null>(null)
@@ -52,17 +56,6 @@ export default function ConductorView() {
     return result
   }, [users])
 
-  // Debug logging
-  useEffect(() => {
-    console.log('ConductorView - Total users:', Object.keys(users).length)
-    console.log('ConductorView - Users:', users)
-    console.log('ConductorView - By Instrument:', {
-      bass: usersByInstrument.bass.length,
-      drums: usersByInstrument.drums.length,
-      harmony: usersByInstrument.harmony.length,
-      melody: usersByInstrument.melody.length,
-    })
-  }, [users, usersByInstrument])
 
   // Handle solo tap
   const handleSolo = (instrument: string) => {
@@ -88,6 +81,24 @@ export default function ConductorView() {
       }
     }
   }, [soloTimeout])
+
+  // Global keyboard listener for spacebar (play/pause)
+  useEffect(() => {
+    if (!isHost) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && !e.repeat) {
+        e.preventDefault()
+        togglePlay()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isHost, togglePlay])
 
   if (!roomId) {
     return <div className="loading">No room ID provided</div>
@@ -153,43 +164,15 @@ export default function ConductorView() {
         </div>
       )}
       {/* Header */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
+      <h1 style={{
+        color: 'white',
+        fontSize: '48px',
+        fontWeight: '700',
+        textShadow: '0 2px 8px rgba(0,0,0,0.5)',
+        textAlign: 'center',
       }}>
-        <h1 style={{
-          color: 'white',
-          fontSize: '48px',
-          fontWeight: '700',
-          textShadow: '0 2px 8px rgba(0,0,0,0.5)',
-        }}>
-          📺 JamSync Conductor
-        </h1>
-
-        {/* Transport Info */}
-        <div style={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          padding: '20px 40px',
-          borderRadius: '16px',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
-        }}>
-          <div style={{
-            color: 'white',
-            fontSize: '24px',
-            fontWeight: '700',
-            marginBottom: '8px',
-          }}>
-            {bpm} BPM
-          </div>
-          <div style={{
-            color: 'rgba(255,255,255,0.9)',
-            fontSize: '16px',
-          }}>
-            {transport.keyRoot} {transport.scaleMode}
-          </div>
-        </div>
-      </div>
+        📺 JamSync Conductor
+      </h1>
 
       {/* Loop Progress */}
       <div style={{
@@ -258,7 +241,8 @@ export default function ConductorView() {
         flex: 1,
         display: 'grid',
         gridTemplateColumns: 'repeat(2, 1fr)',
-        gap: '30px',
+        gap: '40px',
+        marginBottom: '200px',
       }}>
         {/* Bass */}
         <div
@@ -525,87 +509,240 @@ export default function ConductorView() {
             )}
           </div>
         </div>
+      </div>
 
-        {/* Harmony (placeholder) */}
-        <div style={{
-          background: 'rgba(255,255,255,0.05)',
-          borderRadius: '24px',
-          padding: '40px',
-          border: '2px solid rgba(255,255,255,0.05)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '20px',
-          opacity: 0.5,
-        }}>
-          <div style={{
-            fontSize: '64px',
-            textAlign: 'center',
-          }}>
-            🎹
+      {/* FX Controls */}
+      <div style={{
+        position: 'fixed',
+        bottom: '100px',
+        left: 0,
+        right: 0,
+        background: 'rgba(0,0,0,0.7)',
+        padding: '16px 40px',
+        display: 'flex',
+        gap: '40px',
+        justifyContent: 'center',
+        zIndex: 99,
+        backdropFilter: 'blur(10px)',
+      }}>
+        {/* Bass FX */}
+        <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+          <div style={{ color: '#6366f1', fontWeight: '700', fontSize: '14px' }}>🎸 BASS FX:</div>
+
+          <button
+            onClick={() => setBassFX({ ...bassFX, autoWah: !bassFX.autoWah })}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '6px',
+              border: 'none',
+              background: bassFX.autoWah ? '#ffd700' : 'rgba(255,255,255,0.2)',
+              color: bassFX.autoWah ? '#000' : 'white',
+              fontWeight: '600',
+              cursor: 'pointer',
+              fontSize: '12px',
+            }}
+          >
+            Auto-Wah {bassFX.autoWah ? 'ON' : 'OFF'}
+          </button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ color: 'white', fontSize: '12px', minWidth: '60px' }}>Filter: {(bassFX.filterAmount * 100).toFixed(0)}%</span>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value={bassFX.filterAmount}
+              onChange={(e) => setBassFX({ ...bassFX, filterAmount: parseFloat(e.target.value) })}
+              style={{ width: '100px' }}
+            />
           </div>
-          <div style={{
-            color: 'white',
-            fontSize: '32px',
-            fontWeight: '700',
-            textAlign: 'center',
-          }}>
-            Harmony
-          </div>
-          <div style={{
-            color: 'rgba(255,255,255,0.6)',
-            fontSize: '18px',
-            textAlign: 'center',
-          }}>
-            Coming soon...
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ color: 'white', fontSize: '12px', minWidth: '60px' }}>Delay: {(bassFX.delayAmount * 100).toFixed(0)}%</span>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value={bassFX.delayAmount}
+              onChange={(e) => setBassFX({ ...bassFX, delayAmount: parseFloat(e.target.value) })}
+              style={{ width: '100px' }}
+            />
           </div>
         </div>
 
-        {/* Melody (placeholder) */}
-        <div style={{
-          background: 'rgba(255,255,255,0.05)',
-          borderRadius: '24px',
-          padding: '40px',
-          border: '2px solid rgba(255,255,255,0.05)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '20px',
-          opacity: 0.5,
-        }}>
-          <div style={{
-            fontSize: '64px',
-            textAlign: 'center',
-          }}>
-            🎺
+        {/* Drums FX */}
+        <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+          <div style={{ color: '#f5576c', fontWeight: '700', fontSize: '14px' }}>🥁 DRUMS FX:</div>
+
+          <button
+            onClick={() => setDrumsFX({ ...drumsFX, stutter: !drumsFX.stutter })}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '6px',
+              border: 'none',
+              background: drumsFX.stutter ? '#ffd700' : 'rgba(255,255,255,0.2)',
+              color: drumsFX.stutter ? '#000' : 'white',
+              fontWeight: '600',
+              cursor: 'pointer',
+              fontSize: '12px',
+            }}
+          >
+            Stutter {drumsFX.stutter ? 'ON' : 'OFF'}
+          </button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ color: 'white', fontSize: '12px', minWidth: '60px' }}>Filter: {(drumsFX.filterAmount * 100).toFixed(0)}%</span>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value={drumsFX.filterAmount}
+              onChange={(e) => setDrumsFX({ ...drumsFX, filterAmount: parseFloat(e.target.value) })}
+              style={{ width: '100px' }}
+            />
           </div>
-          <div style={{
-            color: 'white',
-            fontSize: '32px',
-            fontWeight: '700',
-            textAlign: 'center',
-          }}>
-            Melody
-          </div>
-          <div style={{
-            color: 'rgba(255,255,255,0.6)',
-            fontSize: '18px',
-            textAlign: 'center',
-          }}>
-            Coming soon...
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ color: 'white', fontSize: '12px', minWidth: '60px' }}>Delay: {(drumsFX.delayAmount * 100).toFixed(0)}%</span>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value={drumsFX.delayAmount}
+              onChange={(e) => setDrumsFX({ ...drumsFX, delayAmount: parseFloat(e.target.value) })}
+              style={{ width: '100px' }}
+            />
           </div>
         </div>
       </div>
 
-      {/* Room Info */}
+      {/* Transport Controls (Bottom) */}
       <div style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        padding: '24px 40px',
+        boxShadow: '0 -4px 24px rgba(0,0,0,0.3)',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        color: 'rgba(255,255,255,0.6)',
-        fontSize: '14px',
+        zIndex: 100,
       }}>
-        <div>Room: {roomId}</div>
-        <div>Total Players: {Object.keys(users).length}</div>
-        <div>Bar: {barIndex}</div>
+        {/* Left: Room info */}
+        <div style={{
+          color: 'rgba(255,255,255,0.8)',
+          fontSize: '14px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '4px',
+        }}>
+          <div>Room: {roomCode || roomId?.slice(0, 8)}</div>
+          <div>Players: {Object.keys(users).length}</div>
+        </div>
+
+        {/* Center: Play button and BPM control */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '32px',
+        }}>
+          {/* Play/Pause Button */}
+          <button
+            onClick={togglePlay}
+            disabled={!isHost}
+            style={{
+              background: isPlaying
+                ? 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
+                : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              border: 'none',
+              borderRadius: '50%',
+              width: '80px',
+              height: '80px',
+              fontSize: '32px',
+              cursor: isHost ? 'pointer' : 'not-allowed',
+              opacity: isHost ? 1 : 0.5,
+              boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+              transition: 'all 0.2s ease',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            onMouseEnter={(e) => {
+              if (isHost) {
+                e.currentTarget.style.transform = 'scale(1.1)'
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)'
+            }}
+          >
+            {isPlaying ? '⏸️' : '▶️'}
+          </button>
+
+          {/* BPM Control */}
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+            minWidth: '200px',
+          }}>
+            <div style={{
+              color: 'white',
+              fontSize: '20px',
+              fontWeight: '700',
+              textAlign: 'center',
+            }}>
+              {bpm} BPM
+            </div>
+            {isHost && (
+              <>
+                <input
+                  type="range"
+                  min="60"
+                  max="180"
+                  step="1"
+                  value={bpm}
+                  onChange={(e) => setBpm(parseInt(e.target.value))}
+                  style={{
+                    width: '100%',
+                    cursor: 'pointer',
+                    accentColor: '#ffd700',
+                  }}
+                />
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  color: 'rgba(255,255,255,0.6)',
+                  fontSize: '11px',
+                }}>
+                  <span>60</span>
+                  <span>180</span>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Right: Host indicator */}
+        <div style={{
+          color: isHost ? '#ffd700' : 'rgba(255,255,255,0.6)',
+          fontSize: '14px',
+          fontWeight: '700',
+          textAlign: 'right',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '4px',
+        }}>
+          {isHost && <div>⭐ HOST</div>}
+          {isHost && <div style={{ fontSize: '12px' }}>Press SPACE</div>}
+          {!isHost && <div>Listener</div>}
+        </div>
       </div>
 
       <style>{`

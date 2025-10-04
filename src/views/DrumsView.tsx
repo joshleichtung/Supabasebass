@@ -17,17 +17,22 @@ export default function DrumsView() {
   const roomId = useResolvedRoomId(roomCode) // Resolve short code to UUID
 
   const { isHost, userCount } = usePresence(roomId, 'drums')
-  const { state: transport, togglePlay, isPlaying, bpm } = useTransport(roomId, isHost)
+  const { state: transport } = useTransport(roomId, isHost)
   const { broadcastParams } = useInstrumentBroadcast(roomId, 'drums')
 
   const [params, setParams] = useState({ x: 0.5, y: 0.5 })
-  const [stutter, setStutter] = useState(false)
-  const [filterAmount, setFilterAmount] = useState(0)
   const [audioStarted, setAudioStarted] = useState(false)
-  const [currentStep, setCurrentStep] = useState(0)
-  const [kickFlash, setKickFlash] = useState(false)
-  const [snareFlash, setSnareFlash] = useState(false)
-  const [hatFlash, setHatFlash] = useState(false)
+
+  // Use refs instead of state for visual feedback (decouples from React render cycle)
+  const currentStepRef = useRef(0)
+  const kickFlashRef = useRef(false)
+  const snareFlashRef = useRef(false)
+  const hatFlashRef = useRef(false)
+
+  // Force update state for visuals (only updates when ref changes)
+  const [, forceUpdate] = useState({})
+  const rafRef = useRef<number | null>(null)
+
   const saveTimeoutRef = useRef<number | null>(null)
   const drumsEngineRef = useRef<DrumsEngine | null>(null)
   const lastBroadcastParamsRef = useRef({ x: 0.5, y: 0.5 })
@@ -57,12 +62,8 @@ export default function DrumsView() {
 
     loadInstrumentParams(roomId, 'drums').then((saved) => {
       if (saved && saved.params) {
-        const { x, y, fx } = saved.params
+        const { x, y } = saved.params
         setParams({ x: x || 0.5, y: y || 0.5 })
-        if (fx) {
-          setStutter(fx.stutter || false)
-          setFilterAmount(fx.filterAmount || 0)
-        }
       }
     })
   }, [roomId])
@@ -76,18 +77,35 @@ export default function DrumsView() {
     }
   }, [audioStarted])
 
-  // Handle XY pad movement - broadcast and update local engine params
+  // RAF loop for visual updates (decoupled from audio)
+  useEffect(() => {
+    if (!audioStarted) return
+
+    const updateVisuals = () => {
+      forceUpdate({})
+      rafRef.current = requestAnimationFrame(updateVisuals)
+    }
+
+    rafRef.current = requestAnimationFrame(updateVisuals)
+
+    return () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current)
+      }
+    }
+  }, [audioStarted])
+
+  // Handle XY pad movement - broadcast only XY (FX controlled from conductor)
   const handleMove = useCallback((x: number, y: number) => {
-    // Always update local state and engine for smooth feedback
+    // Always update local state for smooth feedback
     setParams({ x, y })
-    drumsEngineRef.current?.setParams(x, y, stutter, filterAmount)
 
     // Only broadcast if position changed meaningfully (prevents flood)
     const prev = lastBroadcastParamsRef.current
     const threshold = 0.005 // 0.5% minimum change
 
     if (Math.abs(x - prev.x) >= threshold || Math.abs(y - prev.y) >= threshold) {
-      broadcastParams({ x, y, fx: { stutter, filterAmount } })
+      broadcastParams({ x, y })
       lastBroadcastParamsRef.current = { x, y }
     }
 
@@ -103,51 +121,38 @@ export default function DrumsView() {
 
     saveTimeoutRef.current = window.setTimeout(() => {
       if (roomId) {
-        saveInstrumentParams(roomId, 'drums', {
-          x,
-          y,
-          fx: { stutter, filterAmount }
-        })
+        saveInstrumentParams(roomId, 'drums', { x, y })
       }
     }, 3000)
-  }, [roomId, stutter, filterAmount, broadcastParams, audioStarted, startAudio])
+  }, [roomId, broadcastParams, audioStarted, startAudio])
 
-  // Toggle stutter
-  const toggleStutter = useCallback(() => {
-    const newStutter = !stutter
-    setStutter(newStutter)
-    drumsEngineRef.current?.setParams(params.x, params.y, newStutter, filterAmount)
-    broadcastParams({ x: params.x, y: params.y, fx: { stutter: newStutter, filterAmount } })
-  }, [stutter, params, filterAmount, broadcastParams])
-
-  // Adjust filter
-  const handleFilterChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const newAmount = parseFloat(e.target.value)
-    setFilterAmount(newAmount)
-    drumsEngineRef.current?.setParams(params.x, params.y, stutter, newAmount)
-    broadcastParams({ x: params.x, y: params.y, fx: { stutter, filterAmount: newAmount } })
-  }, [params, stutter, broadcastParams])
-
-  // Scheduler callback - plays muted drums locally for visualization
+  // Scheduler callback - plays muted drums locally for visualization (uses refs, not state)
   const handleSchedule = useCallback((time: number, stepIndex: number) => {
-    setCurrentStep(stepIndex % 16) // Update visualization step
-
-    // Trigger flashes - direct state updates (no Tone.Draw to avoid queue buildup)
+    // Update current step ref (no React render)
     const step = stepIndex % 16
+    currentStepRef.current = step
+
+    // Trigger drum hit flashes using refs (no React render)
     if (step === 0 || step === 8) {
-      setKickFlash(true)
+      kickFlashRef.current = true
       if (kickTimeoutRef.current) clearTimeout(kickTimeoutRef.current)
-      kickTimeoutRef.current = window.setTimeout(() => setKickFlash(false), 100)
+      kickTimeoutRef.current = window.setTimeout(() => {
+        kickFlashRef.current = false
+      }, 100)
     }
     if (step === 4 || step === 12) {
-      setSnareFlash(true)
+      snareFlashRef.current = true
       if (snareTimeoutRef.current) clearTimeout(snareTimeoutRef.current)
-      snareTimeoutRef.current = window.setTimeout(() => setSnareFlash(false), 100)
+      snareTimeoutRef.current = window.setTimeout(() => {
+        snareFlashRef.current = false
+      }, 100)
     }
     if (step % 2 === 0) {
-      setHatFlash(true)
+      hatFlashRef.current = true
       if (hatTimeoutRef.current) clearTimeout(hatTimeoutRef.current)
-      hatTimeoutRef.current = window.setTimeout(() => setHatFlash(false), 80)
+      hatTimeoutRef.current = window.setTimeout(() => {
+        hatFlashRef.current = false
+      }, 80)
     }
 
     drumsEngineRef.current?.scheduleHit(time, stepIndex)
@@ -194,60 +199,40 @@ export default function DrumsView() {
           width: '80px',
           height: '80px',
           borderRadius: '50%',
-          background: kickFlash
+          background: kickFlashRef.current
             ? 'radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%)'
             : 'rgba(255, 255, 255, 0.1)',
           border: '2px solid rgba(255,255,255,0.3)',
           transition: 'all 0.05s',
-          transform: kickFlash ? 'scale(1.3)' : 'scale(1)',
-          boxShadow: kickFlash ? '0 0 40px rgba(255,255,255,1)' : 'none',
+          transform: kickFlashRef.current ? 'scale(1.3)' : 'scale(1)',
+          boxShadow: kickFlashRef.current ? '0 0 40px rgba(255,255,255,1)' : 'none',
         }} />
         {/* Snare Flash */}
         <div style={{
           width: '80px',
           height: '80px',
           borderRadius: '50%',
-          background: snareFlash
+          background: snareFlashRef.current
             ? 'radial-gradient(circle, rgba(255,215,0,0.9) 0%, rgba(255,215,0,0.4) 50%, rgba(255,215,0,0) 100%)'
             : 'rgba(255, 255, 255, 0.1)',
           border: '2px solid rgba(255,255,255,0.3)',
           transition: 'all 0.05s',
-          transform: snareFlash ? 'scale(1.3)' : 'scale(1)',
-          boxShadow: snareFlash ? '0 0 40px rgba(255,215,0,1)' : 'none',
+          transform: snareFlashRef.current ? 'scale(1.3)' : 'scale(1)',
+          boxShadow: snareFlashRef.current ? '0 0 40px rgba(255,215,0,1)' : 'none',
         }} />
         {/* HiHat Flash */}
         <div style={{
           width: '80px',
           height: '80px',
           borderRadius: '50%',
-          background: hatFlash
+          background: hatFlashRef.current
             ? 'radial-gradient(circle, rgba(147,197,253,0.9) 0%, rgba(147,197,253,0.4) 50%, rgba(147,197,253,0) 100%)'
             : 'rgba(255, 255, 255, 0.1)',
           border: '2px solid rgba(255,255,255,0.3)',
           transition: 'all 0.05s',
-          transform: hatFlash ? 'scale(1.3)' : 'scale(1)',
-          boxShadow: hatFlash ? '0 0 40px rgba(147,197,253,1)' : 'none',
+          transform: hatFlashRef.current ? 'scale(1.3)' : 'scale(1)',
+          boxShadow: hatFlashRef.current ? '0 0 40px rgba(147,197,253,1)' : 'none',
         }} />
-      </div>
-
-      {/* Transport Controls */}
-      <div className="transport-controls">
-        <button
-          className="transport-button"
-          onClick={(e) => {
-            e.stopPropagation()
-            if (isHost) togglePlay()
-          }}
-          disabled={!isHost}
-          style={{ opacity: isHost ? 1 : 0.5 }}
-        >
-          {isPlaying ? '⏸️' : '▶️'}
-        </button>
-        <div className="transport-info">
-          <div>Tempo: {bpm} BPM</div>
-          <div>Key: {transport.keyRoot} {transport.scaleMode}</div>
-          {isHost && <div style={{ color: '#ffd700', fontWeight: '700' }}>⭐ HOST</div>}
-        </div>
       </div>
 
       {/* Presence */}
@@ -263,7 +248,7 @@ export default function DrumsView() {
       {/* XY Pad with drum arc visualization */}
       <XYPad onMove={handleMove} color="#f5576c">
         {audioStarted && (
-          <DrumsVisuals currentStep={currentStep} color="#f5576c" />
+          <DrumsVisuals currentStep={currentStepRef.current} color="#f5576c" />
         )}
       </XYPad>
 
@@ -290,57 +275,6 @@ export default function DrumsView() {
         <div style={{ fontSize: '12px', marginTop: '12px', opacity: 0.6 }}>
           {!audioStarted && '(Move cursor to start visualization)'}
           {audioStarted && '(Muted - Audio plays on Conductor only)'}
-        </div>
-      </div>
-
-      {/* FX Controls */}
-      <div style={{
-        position: 'absolute',
-        bottom: '20px',
-        left: '20px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '12px',
-      }}>
-        {/* Stutter */}
-        <button
-          onClick={toggleStutter}
-          style={{
-            padding: '12px 24px',
-            borderRadius: '8px',
-            border: 'none',
-            background: stutter ? '#ffd700' : 'rgba(255,255,255,0.9)',
-            color: stutter ? '#000' : '#333',
-            fontWeight: '700',
-            cursor: 'pointer',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-          }}
-        >
-          ⚡ Stutter {stutter ? 'ON' : 'OFF'}
-        </button>
-
-        {/* Filter */}
-        <div style={{
-          background: 'rgba(255,255,255,0.9)',
-          padding: '12px 16px',
-          borderRadius: '8px',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-        }}>
-          <div style={{ fontSize: '12px', marginBottom: '8px', fontWeight: '700' }}>
-            🎛️ Filter: {(filterAmount * 100).toFixed(0)}%
-          </div>
-          <input
-            type="range"
-            min="0"
-            max="1"
-            step="0.01"
-            value={filterAmount}
-            onChange={handleFilterChange}
-            style={{
-              width: '150px',
-              cursor: 'pointer',
-            }}
-          />
         </div>
       </div>
 
