@@ -57,18 +57,21 @@ export async function createRoom(): Promise<{ room: Room; code: string }> {
 }
 
 /**
- * Join an existing room by code
+ * Join an existing room by code or UUID
+ * Accepts either short codes (e.g. "7VMZ") or UUIDs
  */
-export async function joinRoom(code: string): Promise<{ room: Room; transport: Transport; progression: Progression[] } | null> {
-  // Find room by name (which is the code)
-  const { data: room, error: roomError } = await supabase
-    .from('rooms')
-    .select()
-    .eq('name', code)
-    .single()
+export async function joinRoom(codeOrId: string): Promise<{ room: Room; transport: Transport; progression: Progression[] } | null> {
+  // Check if it's a UUID format (has dashes)
+  const isUuid = codeOrId.includes('-')
+
+  // Find room by either ID or name
+  const query = supabase.from('rooms').select()
+  const { data: room, error: roomError } = isUuid
+    ? await query.eq('id', codeOrId).single()
+    : await query.eq('name', codeOrId).single()
 
   if (roomError || !room) {
-    console.error('Room not found:', code, roomError)
+    console.error('Room not found:', codeOrId, roomError)
     return null
   }
 

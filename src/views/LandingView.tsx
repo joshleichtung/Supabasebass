@@ -13,7 +13,7 @@ export default function LandingView() {
   const roomId = searchParams.get('r')
 
   useEffect(() => {
-    // If we have a room code, verify it exists and resolve to UUID
+    // If we have a room code, verify it exists
     if (roomId) {
       setLoading(true)
       joinRoomDB(roomId)
@@ -22,12 +22,8 @@ export default function LandingView() {
             setError(`Room "${roomId}" not found`)
             setShareCode(null)
           } else {
-            // Store the short code for sharing (room.name)
+            // Store the short code for sharing
             setShareCode(result.room.name)
-            // If the URL has the short code, replace with UUID
-            if (roomId !== result.room.id) {
-              navigate(`/?r=${result.room.id}`, { replace: true })
-            }
           }
         })
         .catch((err) => {
@@ -38,7 +34,7 @@ export default function LandingView() {
           setLoading(false)
         })
     }
-  }, [roomId, navigate])
+  }, [roomId])
 
   const createRoom = async () => {
     setLoading(true)
@@ -47,8 +43,8 @@ export default function LandingView() {
       const { room, code } = await createRoomDB()
       console.log(`Created room ${room.id} with code ${code}`)
       setShareCode(code)
-      // Navigate with UUID, not short code
-      navigate(`/?r=${room.id}`)
+      // Navigate with short code for simplicity
+      navigate(`/?r=${code}`)
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Unknown error'
       setError('Failed to create room: ' + message)
