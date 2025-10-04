@@ -42,24 +42,8 @@ alter table progression enable row level security;
 alter table instrument_params enable row level security;
 
 -- Demo-time policies (loose). Tighten after hackathon.
-do $$
-begin
-  if not exists (select 1 from pg_policies where polname = 'anon_select_rooms') then
-    create policy anon_select_rooms on rooms for select using (true);
-  end if;
-  if not exists (select 1 from pg_policies where polname = 'anon_insert_rooms') then
-    create policy anon_insert_rooms on rooms for insert with check (true);
-  end if;
-
-  if not exists (select 1 from pg_policies where polname = 'anon_all_transport') then
-    create policy anon_all_transport on transport for all using (true) with check (true);
-  end if;
-
-  if not exists (select 1 from pg_policies where polname = 'anon_all_progression') then
-    create policy anon_all_progression on progression for all using (true) with check (true);
-  end if;
-
-  if not exists (select 1 from pg_policies where polname = 'anon_all_params') then
-    create policy anon_all_params on instrument_params for all using (true) with check (true);
-  end if;
-end $$;
+create policy anon_select_rooms on rooms for select using (true);
+create policy anon_insert_rooms on rooms for insert with check (true);
+create policy anon_all_transport on transport for all using (true) with check (true);
+create policy anon_all_progression on progression for all using (true) with check (true);
+create policy anon_all_params on instrument_params for all using (true) with check (true);

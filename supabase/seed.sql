@@ -1,4 +1,6 @@
 -- Seed a default room and transport
-insert into rooms (id, name) values (gen_random_uuid(), 'YC') returning id \gset
+with new_room as (
+  insert into rooms (id, name) values (gen_random_uuid(), 'YC') returning id
+)
 insert into transport (room_id, bpm, key_root, scale_mode, is_playing)
-values (:id, 90, 'C', 'ionian', true);
+select id, 90, 'C', 'ionian', true from new_room;
