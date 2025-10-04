@@ -3,12 +3,16 @@ import { bassNoteFor } from './engine' // Existing stub
 
 export class BassEngine {
   private synth: Tone.MonoSynth
+  private volume: Tone.Volume
   private lastNote = 48 // C2
   private isPlaying = false
   private params = { x: 0.5, y: 0.5 }
 
   constructor(muted = false) {
-    // Create bass synth
+    // Create volume node for muting control
+    this.volume = new Tone.Volume(muted ? -Infinity : -8).toDestination()
+
+    // Create bass synth - connect to volume node
     this.synth = new Tone.MonoSynth({
       oscillator: {
         type: 'sawtooth'
@@ -27,10 +31,7 @@ export class BassEngine {
         baseFrequency: 100,
         octaves: 3.5
       }
-    }).toDestination()
-
-    // Mute for visualization-only (instrument views), audible for conductor
-    this.synth.volume.value = muted ? -Infinity : -8
+    }).connect(this.volume)
   }
 
   /**
@@ -114,5 +115,6 @@ export class BassEngine {
    */
   dispose() {
     this.synth.dispose()
+    this.volume.dispose()
   }
 }
