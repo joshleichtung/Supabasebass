@@ -96,7 +96,7 @@ export default function BassView() {
       transport.scaleMode,
       'I' // Default to root for now
     )
-  }, [transport])
+  }, [transport.keyRoot, transport.scaleMode])
 
   // Use scheduler (correct parameter order: transport, callback, enabled)
   // Run independently of global isPlaying for local visualization

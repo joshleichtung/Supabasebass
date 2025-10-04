@@ -173,7 +173,7 @@ export function useConductorAudio(roomId: string | null, transport: TransportSta
     if (drumsEngineRef.current) {
       drumsEngineRef.current.scheduleHit(time, stepIndex)
     }
-  }, [audioStarted, transport.keyRoot, transport.scaleMode])
+  }, [audioStarted, transport.keyRoot, transport.scaleMode, time])
 
   // Attach scheduler
   useScheduler(transport, handleSchedule, audioStarted)
