@@ -11,7 +11,7 @@ export class DrumsEngine {
   private currentPattern: DrumPattern = { kick: [], snare: [], hat: [] }
   private stutterBuffer: Array<{ type: 'kick' | 'snare' | 'hat'; time: number }> = []
 
-  constructor() {
+  constructor(muted = false) {
     // Create kick drum
     this.kick = new Tone.MembraneSynth({
       pitchDecay: 0.05,
@@ -49,10 +49,16 @@ export class DrumsEngine {
     this.hihat.connect(this.filter)
     this.filter.toDestination()
 
-    // Set volumes
-    this.kick.volume.value = -8
-    this.snare.volume.value = -10
-    this.hihat.volume.value = -20
+    // Set volumes - mute for visualization-only (instrument views), audible for conductor
+    if (muted) {
+      this.kick.volume.value = -Infinity
+      this.snare.volume.value = -Infinity
+      this.hihat.volume.value = -Infinity
+    } else {
+      this.kick.volume.value = -8
+      this.snare.volume.value = -10
+      this.hihat.volume.value = -20
+    }
   }
 
   /**

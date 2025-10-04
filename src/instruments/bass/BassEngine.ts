@@ -7,7 +7,7 @@ export class BassEngine {
   private isPlaying = false
   private params = { x: 0.5, y: 0.5 }
 
-  constructor() {
+  constructor(muted = false) {
     // Create bass synth
     this.synth = new Tone.MonoSynth({
       oscillator: {
@@ -29,7 +29,8 @@ export class BassEngine {
       }
     }).toDestination()
 
-    this.synth.volume.value = -8
+    // Mute for visualization-only (instrument views), audible for conductor
+    this.synth.volume.value = muted ? -Infinity : -8
   }
 
   /**
@@ -102,7 +103,7 @@ export class BassEngine {
   }
 
   /**
-   * Get current synth for volume/routing
+   * Get synth for visualization
    */
   getSynth() {
     return this.synth

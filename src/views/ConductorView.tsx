@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { usePresence } from '../hooks/usePresence'
 import { useTransport } from '../hooks/useTransport'
@@ -18,25 +18,30 @@ export default function ConductorView() {
   const [soloedInstrument, setSoloedInstrument] = useState<string | null>(null)
   const [soloTimeout, setSoloTimeout] = useState<number | null>(null)
 
-  // Get users by instrument
-  const usersByInstrument: Record<string, PresenceState[]> = {
-    bass: [],
-    drums: [],
-    harmony: [],
-    melody: [],
-  }
-
-  Object.values(users).forEach(user => {
-    if (user.instrument && user.instrument !== 'conductor') {
-      if (!usersByInstrument[user.instrument]) {
-        usersByInstrument[user.instrument] = []
-      }
-      usersByInstrument[user.instrument].push(user)
+  // Get users by instrument - useMemo to prevent recalculation
+  const usersByInstrument = useMemo(() => {
+    const result: Record<string, PresenceState[]> = {
+      bass: [],
+      drums: [],
+      harmony: [],
+      melody: [],
     }
-  })
+
+    Object.values(users).forEach(user => {
+      if (user.instrument && user.instrument !== 'conductor') {
+        if (!result[user.instrument]) {
+          result[user.instrument] = []
+        }
+        result[user.instrument].push(user)
+      }
+    })
+
+    return result
+  }, [users])
 
   // Debug logging
   useEffect(() => {
+    console.log('ConductorView - Total users:', Object.keys(users).length)
     console.log('ConductorView - Users:', users)
     console.log('ConductorView - By Instrument:', {
       bass: usersByInstrument.bass.length,
@@ -44,7 +49,7 @@ export default function ConductorView() {
       harmony: usersByInstrument.harmony.length,
       melody: usersByInstrument.melody.length,
     })
-  }, [users])
+  }, [users, usersByInstrument])
 
   // Handle solo tap
   const handleSolo = (instrument: string) => {

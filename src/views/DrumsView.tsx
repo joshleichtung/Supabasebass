@@ -1,9 +1,13 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import * as Tone from 'tone'
 import { usePresence } from '../hooks/usePresence'
 import { useTransport } from '../hooks/useTransport'
 import { useInstrumentBroadcast } from '../hooks/useInstrumentBroadcast'
 import { useResolvedRoomId } from '../hooks/useResolvedRoomId'
+import { useScheduler } from '../hooks/useScheduler'
+import { DrumsEngine } from '../instruments/drums/DrumsEngine'
+import DrumsVisuals from '../instruments/drums/DrumsVisuals'
 import XYPad from '../components/XYPad'
 import { saveInstrumentParams, loadInstrumentParams } from '../lib/room-manager'
 
@@ -19,7 +23,24 @@ export default function DrumsView() {
   const [params, setParams] = useState({ x: 0.5, y: 0.5 })
   const [stutter, setStutter] = useState(false)
   const [filterAmount, setFilterAmount] = useState(0)
+  const [audioStarted, setAudioStarted] = useState(false)
+  const [currentStep, setCurrentStep] = useState(0)
   const saveTimeoutRef = useRef<number | null>(null)
+  const drumsEngineRef = useRef<DrumsEngine | null>(null)
+
+  // Initialize muted drums engine for visualization
+  useEffect(() => {
+    if (!drumsEngineRef.current) {
+      drumsEngineRef.current = new DrumsEngine(true) // muted=true for visualization only
+    }
+
+    return () => {
+      if (drumsEngineRef.current) {
+        drumsEngineRef.current.dispose()
+        drumsEngineRef.current = null
+      }
+    }
+  }, [])
 
   // Load saved params
   useEffect(() => {
@@ -37,12 +58,29 @@ export default function DrumsView() {
     })
   }, [roomId])
 
-  // Handle XY pad movement - broadcast only
+  // Start audio context (required for visualization)
+  const startAudio = useCallback(async () => {
+    if (!audioStarted) {
+      await Tone.start()
+      await drumsEngineRef.current?.start()
+      setAudioStarted(true)
+    }
+  }, [audioStarted])
+
+  // Handle XY pad movement - broadcast and update local engine params
   const handleMove = useCallback((x: number, y: number) => {
     setParams({ x, y })
 
+    // Update local engine params for visualization
+    drumsEngineRef.current?.setParams(x, y, stutter, filterAmount)
+
     // Broadcast to conductor
     broadcastParams({ x, y, fx: { stutter, filterAmount } })
+
+    // Start audio on first interaction (for visualization)
+    if (!audioStarted) {
+      startAudio()
+    }
 
     // Debounced save
     if (saveTimeoutRef.current) {
@@ -58,12 +96,13 @@ export default function DrumsView() {
         })
       }
     }, 3000)
-  }, [roomId, stutter, filterAmount, broadcastParams])
+  }, [roomId, stutter, filterAmount, broadcastParams, audioStarted, startAudio])
 
   // Toggle stutter
   const toggleStutter = useCallback(() => {
     const newStutter = !stutter
     setStutter(newStutter)
+    drumsEngineRef.current?.setParams(params.x, params.y, newStutter, filterAmount)
     broadcastParams({ x: params.x, y: params.y, fx: { stutter: newStutter, filterAmount } })
   }, [stutter, params, filterAmount, broadcastParams])
 
@@ -71,8 +110,20 @@ export default function DrumsView() {
   const handleFilterChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const newAmount = parseFloat(e.target.value)
     setFilterAmount(newAmount)
+    drumsEngineRef.current?.setParams(params.x, params.y, stutter, newAmount)
     broadcastParams({ x: params.x, y: params.y, fx: { stutter, filterAmount: newAmount } })
   }, [params, stutter, broadcastParams])
+
+  // Scheduler callback - plays muted drums locally for visualization
+  const handleSchedule = useCallback((time: number, stepIndex: number) => {
+    if (!audioStarted) return
+
+    setCurrentStep(stepIndex % 16) // Update visualization step
+    drumsEngineRef.current?.scheduleHit(time, stepIndex)
+  }, [audioStarted])
+
+  // Use scheduler
+  useScheduler(handleSchedule, transport)
 
   if (!roomId) {
     return <div className="loading">No room ID provided</div>
@@ -116,19 +167,11 @@ export default function DrumsView() {
         </div>
       </div>
 
-      {/* XY Pad - No audio */}
+      {/* XY Pad with drum arc visualization */}
       <XYPad onMove={handleMove} color="#f5576c">
-        <div style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          fontSize: '120px',
-          opacity: 0.3,
-          pointerEvents: 'none',
-        }}>
-          🥁
-        </div>
+        {audioStarted && (
+          <DrumsVisuals currentStep={currentStep} color="#f5576c" />
+        )}
       </XYPad>
 
       {/* Instructions */}
@@ -152,7 +195,8 @@ export default function DrumsView() {
           X: Density • Y: Groove
         </div>
         <div style={{ fontSize: '12px', marginTop: '12px', opacity: 0.6 }}>
-          (Audio plays on Conductor view only)
+          {!audioStarted && '(Move cursor to start visualization)'}
+          {audioStarted && '(Muted - Audio plays on Conductor only)'}
         </div>
       </div>
 
