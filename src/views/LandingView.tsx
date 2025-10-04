@@ -8,34 +8,47 @@ export default function LandingView() {
   const [roomCode, setRoomCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [shareCode, setShareCode] = useState<string | null>(null)
 
   const roomId = searchParams.get('r')
 
   useEffect(() => {
-    // If we have a room code, verify it exists
+    // If we have a room code, verify it exists and resolve to UUID
     if (roomId) {
       setLoading(true)
       joinRoomDB(roomId)
         .then((result) => {
           if (!result) {
             setError(`Room "${roomId}" not found`)
+            setShareCode(null)
+          } else {
+            // Store the short code for sharing (room.name)
+            setShareCode(result.room.name)
+            // If the URL has the short code, replace with UUID
+            if (roomId !== result.room.id) {
+              navigate(`/?r=${result.room.id}`, { replace: true })
+            }
           }
         })
         .catch((err) => {
           setError('Failed to join room: ' + err.message)
+          setShareCode(null)
         })
         .finally(() => {
           setLoading(false)
         })
     }
-  }, [roomId])
+  }, [roomId, navigate])
 
   const createRoom = async () => {
     setLoading(true)
     setError(null)
     try {
-      const { code } = await createRoomDB()
-      navigate(`/?r=${code}`)
+      const { room, code } = await createRoomDB()
+      console.log(`Created room ${room.id} with code ${code}`)
+      setShareCode(code)
+      // Navigate with UUID, not short code
+      navigate(`/?r=${room.id}`)
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Unknown error'
       setError('Failed to create room: ' + message)
@@ -88,11 +101,13 @@ export default function LandingView() {
   }
 
   const copyRoomCode = () => {
-    navigator.clipboard.writeText(roomId)
-    alert(`Room code "${roomId}" copied to clipboard!`)
+    if (shareCode) {
+      navigator.clipboard.writeText(shareCode)
+      alert(`Room code "${shareCode}" copied to clipboard!`)
+    }
   }
 
-  if (roomId) {
+  if (roomId && shareCode) {
     return (
       <div className="fullscreen" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '20px' }}>
         <h1 style={{ color: 'white', fontSize: '48px' }}>BassBase</h1>
@@ -106,7 +121,7 @@ export default function LandingView() {
           backdropFilter: 'blur(10px)'
         }}>
           <span style={{ color: 'white', fontSize: '24px', fontWeight: '700', letterSpacing: '2px', userSelect: 'all' }}>
-            {roomId}
+            {shareCode}
           </span>
           <button
             onClick={copyRoomCode}
