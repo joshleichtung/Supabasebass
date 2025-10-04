@@ -76,7 +76,7 @@ export function useScheduler(
           callbackRef.current(time, stepIndex % 16)
           stepIndex++
         } catch (e) {
-          console.debug('Scheduler callback error (transitioning):', e)
+          // Silently ignore errors during transitions
         }
       }
     }, '16n')

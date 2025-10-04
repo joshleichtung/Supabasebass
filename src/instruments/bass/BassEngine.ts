@@ -111,8 +111,7 @@ export class BassEngine {
       this.synth.triggerAttackRelease(freq, '16n', time, 0.8)
       this.lastTriggerTime = time
     } catch (e) {
-      // Silently ignore timing conflicts when multiple schedulers are running
-      console.debug('Bass note scheduling conflict (expected with multiple windows):', e)
+      // Silently ignore timing conflicts
     }
   }
 

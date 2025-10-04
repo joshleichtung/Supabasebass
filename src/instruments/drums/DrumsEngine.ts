@@ -115,7 +115,7 @@ export class DrumsEngine {
           this.kick.triggerAttackRelease('C1', '8n', hitTime)
           this.lastKickTime = hitTime
         } catch (e) {
-          console.debug('Kick scheduling conflict:', e)
+          // Silently ignore conflicts
         }
 
         if (stutter) {
@@ -135,7 +135,7 @@ export class DrumsEngine {
           this.snare.triggerAttackRelease('8n', hitTime, velocity)
           this.lastSnareTime = hitTime
         } catch (e) {
-          console.debug('Snare scheduling conflict:', e)
+          // Silently ignore conflicts
         }
 
         if (stutter) {
@@ -153,7 +153,7 @@ export class DrumsEngine {
           this.hihat.triggerAttackRelease('32n', hitTime, velocity)
           this.lastHatTime = hitTime
         } catch (e) {
-          console.debug('HiHat scheduling conflict:', e)
+          // Silently ignore conflicts
         }
 
         if (stutter) {
