@@ -27,6 +27,11 @@ export function useConductorAudio(roomId: string | null, transport: TransportSta
   const [snareFlash, setSnareFlash] = useState(false)
   const [hatFlash, setHatFlash] = useState(false)
 
+  // Timeout refs to prevent memory leaks
+  const kickTimeoutRef = useRef<number | null>(null)
+  const snareTimeoutRef = useRef<number | null>(null)
+  const hatTimeoutRef = useRef<number | null>(null)
+
   // Audio engines
   const bassEngineRef = useRef<BassEngine | null>(null)
   const drumsEngineRef = useRef<DrumsEngine | null>(null)
@@ -125,18 +130,21 @@ export function useConductorAudio(roomId: string | null, transport: TransportSta
     const step = stepIndex % 16
     setCurrentStep(step)
 
-    // Trigger drum hit flashes based on pattern
+    // Trigger drum hit flashes based on pattern - clear previous timeouts to prevent leaks
     if (step === 0 || step === 8) {
+      if (kickTimeoutRef.current) clearTimeout(kickTimeoutRef.current)
       setKickFlash(true)
-      setTimeout(() => setKickFlash(false), 100)
+      kickTimeoutRef.current = window.setTimeout(() => setKickFlash(false), 100)
     }
     if (step === 4 || step === 12) {
+      if (snareTimeoutRef.current) clearTimeout(snareTimeoutRef.current)
       setSnareFlash(true)
-      setTimeout(() => setSnareFlash(false), 100)
+      snareTimeoutRef.current = window.setTimeout(() => setSnareFlash(false), 100)
     }
     if (step % 2 === 0) {
+      if (hatTimeoutRef.current) clearTimeout(hatTimeoutRef.current)
       setHatFlash(true)
-      setTimeout(() => setHatFlash(false), 80)
+      hatTimeoutRef.current = window.setTimeout(() => setHatFlash(false), 80)
     }
 
     // Get current chord from progression

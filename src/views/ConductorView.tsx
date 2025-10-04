@@ -294,6 +294,25 @@ export default function ConductorView() {
             </div>
           )}
 
+          {/* Cursor Position Indicator */}
+          {usersByInstrument.bass.length > 0 && (
+            <div style={{
+              position: 'absolute',
+              left: `${bassParams.x * 100}%`,
+              top: `${(1 - bassParams.y) * 100}%`,
+              transform: 'translate(-50%, -50%)',
+              width: '24px',
+              height: '24px',
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(99,102,241,0.6) 50%, rgba(99,102,241,0) 100%)',
+              border: '3px solid rgba(255,255,255,0.9)',
+              boxShadow: '0 0 20px rgba(255,255,255,0.8)',
+              pointerEvents: 'none',
+              zIndex: 3,
+              transition: 'all 0.1s ease-out',
+            }} />
+          )}
+
           {/* Content Layer */}
           <div style={{
             position: 'relative',
@@ -325,21 +344,6 @@ export default function ConductorView() {
                 ? `${usersByInstrument.bass.length} player${usersByInstrument.bass.length > 1 ? 's' : ''}`
                 : 'Waiting...'}
             </div>
-
-            {/* Cursor Position Indicator */}
-            {usersByInstrument.bass.length > 0 && (
-              <div style={{
-                background: 'rgba(255,255,255,0.1)',
-                borderRadius: '12px',
-                padding: '12px',
-                fontSize: '14px',
-                color: 'rgba(255,255,255,0.8)',
-                textAlign: 'center',
-              }}>
-                <div>Density: {(bassParams.x * 100).toFixed(0)}%</div>
-                <div>Complexity: {(bassParams.y * 100).toFixed(0)}%</div>
-              </div>
-            )}
 
             {soloedInstrument === 'bass' && (
               <div style={{
@@ -387,6 +391,25 @@ export default function ConductorView() {
             }}>
               <DrumsVisuals currentStep={currentStep} color="#f5576c" />
             </div>
+          )}
+
+          {/* Cursor Position Indicator */}
+          {usersByInstrument.drums.length > 0 && (
+            <div style={{
+              position: 'absolute',
+              left: `${drumsParams.x * 100}%`,
+              top: `${(1 - drumsParams.y) * 100}%`,
+              transform: 'translate(-50%, -50%)',
+              width: '24px',
+              height: '24px',
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(245,87,108,0.6) 50%, rgba(245,87,108,0) 100%)',
+              border: '3px solid rgba(255,255,255,0.9)',
+              boxShadow: '0 0 20px rgba(255,255,255,0.8)',
+              pointerEvents: 'none',
+              zIndex: 3,
+              transition: 'all 0.1s ease-out',
+            }} />
           )}
 
           {/* Drum Hit Indicators */}
@@ -475,26 +498,17 @@ export default function ConductorView() {
                 : 'Waiting...'}
             </div>
 
-            {/* Cursor Position Indicator */}
-            {usersByInstrument.drums.length > 0 && (
+            {/* FX Indicators */}
+            {usersByInstrument.drums.length > 0 && drumsParams.fx && (
               <div style={{
-                background: 'rgba(255,255,255,0.1)',
-                borderRadius: '12px',
-                padding: '12px',
-                fontSize: '14px',
-                color: 'rgba(255,255,255,0.8)',
-                textAlign: 'center',
+                display: 'flex',
+                gap: '8px',
+                justifyContent: 'center',
+                fontSize: '12px',
+                color: 'rgba(255,255,255,0.7)',
               }}>
-                <div>Density: {(drumsParams.x * 100).toFixed(0)}%</div>
-                <div>Groove: {(drumsParams.y * 100).toFixed(0)}%</div>
-                {drumsParams.fx && (
-                  <>
-                    {drumsParams.fx.stutter && <div>⚡ Stutter ON</div>}
-                    {drumsParams.fx.filterAmount > 0 && (
-                      <div>🎛️ Filter: {((drumsParams.fx.filterAmount as number) * 100).toFixed(0)}%</div>
-                    )}
-                  </>
-                )}
+                {drumsParams.fx.stutter && <div>⚡ Stutter</div>}
+                {(drumsParams.fx.filterAmount as number) > 0.1 && <div>🎛️ Filter</div>}
               </div>
             )}
 

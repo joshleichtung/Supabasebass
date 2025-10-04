@@ -29,6 +29,9 @@ export default function DrumsView() {
   const [snareFlash, setSnareFlash] = useState(false)
   const [hatFlash, setHatFlash] = useState(false)
   const saveTimeoutRef = useRef<number | null>(null)
+  const kickTimeoutRef = useRef<number | null>(null)
+  const snareTimeoutRef = useRef<number | null>(null)
+  const hatTimeoutRef = useRef<number | null>(null)
   const drumsEngineRef = useRef<DrumsEngine | null>(null)
 
   // Initialize muted drums engine for visualization
@@ -121,23 +124,26 @@ export default function DrumsView() {
   const handleSchedule = useCallback((time: number, stepIndex: number) => {
     setCurrentStep(stepIndex % 16) // Update visualization step
 
-    // Get current pattern from engine to show hit flashes
+    // Get current pattern from engine to show hit flashes - clear timeouts to prevent leaks
     const engine = drumsEngineRef.current
     if (engine) {
       const step = stepIndex % 16
       // Access pattern via setParams to get current pattern state
       // Simplified: trigger flashes based on common patterns
       if (step === 0 || step === 8) {
+        if (kickTimeoutRef.current) clearTimeout(kickTimeoutRef.current)
         setKickFlash(true)
-        setTimeout(() => setKickFlash(false), 100)
+        kickTimeoutRef.current = window.setTimeout(() => setKickFlash(false), 100)
       }
       if (step === 4 || step === 12) {
+        if (snareTimeoutRef.current) clearTimeout(snareTimeoutRef.current)
         setSnareFlash(true)
-        setTimeout(() => setSnareFlash(false), 100)
+        snareTimeoutRef.current = window.setTimeout(() => setSnareFlash(false), 100)
       }
       if (step % 2 === 0) {
+        if (hatTimeoutRef.current) clearTimeout(hatTimeoutRef.current)
         setHatFlash(true)
-        setTimeout(() => setHatFlash(false), 80)
+        hatTimeoutRef.current = window.setTimeout(() => setHatFlash(false), 80)
       }
     }
 
