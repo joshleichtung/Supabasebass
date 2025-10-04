@@ -71,7 +71,7 @@ export default function LandingView() {
   if (error) {
     return (
       <div className="fullscreen" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '20px' }}>
-        <h1 style={{ color: 'white', fontSize: '48px' }}>BassBase</h1>
+        <h1 style={{ color: 'white', fontSize: '48px' }}>JamSync</h1>
         <div style={{ background: 'rgba(239, 68, 68, 0.9)', padding: '16px 24px', borderRadius: '8px', color: 'white' }}>
           {error}
         </div>
@@ -108,7 +108,7 @@ export default function LandingView() {
   if (roomId && shareCode) {
     return (
       <div className="fullscreen" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '20px' }}>
-        <h1 style={{ color: 'white', fontSize: '48px' }}>BassBase</h1>
+        <h1 style={{ color: 'white', fontSize: '48px' }}>JamSync</h1>
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -198,7 +198,7 @@ export default function LandingView() {
 
   return (
     <div className="fullscreen" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '30px' }}>
-      <h1 style={{ color: 'white', fontSize: '72px', textShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}>BassBase</h1>
+      <h1 style={{ color: 'white', fontSize: '72px', textShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}>JamSync</h1>
       <p style={{ color: 'white', fontSize: '20px', opacity: 0.9 }}>Multiplayer jam space</p>
 
       <button

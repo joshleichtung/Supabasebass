@@ -161,7 +161,7 @@ export default function ConductorView() {
           fontWeight: '700',
           textShadow: '0 2px 8px rgba(0,0,0,0.5)',
         }}>
-          📺 BassBase Conductor
+          📺 JamSync Conductor
         </h1>
 
         {/* Transport Info */}

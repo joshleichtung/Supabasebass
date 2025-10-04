@@ -99,7 +99,8 @@ export default function BassView() {
   }, [transport])
 
   // Use scheduler (correct parameter order: transport, callback, enabled)
-  useScheduler(transport, handleSchedule, audioStarted && isPlaying)
+  // Run independently of global isPlaying for local visualization
+  useScheduler(transport, handleSchedule, audioStarted)
 
   if (!roomId) {
     return <div className="loading">No room ID provided</div>

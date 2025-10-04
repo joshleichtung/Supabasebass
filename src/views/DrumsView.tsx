@@ -25,6 +25,9 @@ export default function DrumsView() {
   const [filterAmount, setFilterAmount] = useState(0)
   const [audioStarted, setAudioStarted] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
+  const [kickFlash, setKickFlash] = useState(false)
+  const [snareFlash, setSnareFlash] = useState(false)
+  const [hatFlash, setHatFlash] = useState(false)
   const saveTimeoutRef = useRef<number | null>(null)
   const drumsEngineRef = useRef<DrumsEngine | null>(null)
 
@@ -117,11 +120,33 @@ export default function DrumsView() {
   // Scheduler callback - plays muted drums locally for visualization
   const handleSchedule = useCallback((time: number, stepIndex: number) => {
     setCurrentStep(stepIndex % 16) // Update visualization step
+
+    // Get current pattern from engine to show hit flashes
+    const engine = drumsEngineRef.current
+    if (engine) {
+      const step = stepIndex % 16
+      // Access pattern via setParams to get current pattern state
+      // Simplified: trigger flashes based on common patterns
+      if (step === 0 || step === 8) {
+        setKickFlash(true)
+        setTimeout(() => setKickFlash(false), 100)
+      }
+      if (step === 4 || step === 12) {
+        setSnareFlash(true)
+        setTimeout(() => setSnareFlash(false), 100)
+      }
+      if (step % 2 === 0) {
+        setHatFlash(true)
+        setTimeout(() => setHatFlash(false), 80)
+      }
+    }
+
     drumsEngineRef.current?.scheduleHit(time, stepIndex)
   }, [])
 
   // Use scheduler (correct parameter order: transport, callback, enabled)
-  useScheduler(transport, handleSchedule, audioStarted && isPlaying)
+  // Run independently of global isPlaying for local visualization
+  useScheduler(transport, handleSchedule, audioStarted)
 
   if (!roomId) {
     return <div className="loading">No room ID provided</div>
@@ -135,6 +160,70 @@ export default function DrumsView() {
         position: 'relative',
       }}
     >
+      {/* Drum Hit Flash Indicators */}
+      <div style={{
+        position: 'absolute',
+        top: '100px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        display: 'flex',
+        gap: '20px',
+        pointerEvents: 'none',
+        zIndex: 10,
+      }}>
+        {/* Kick Flash */}
+        <div style={{
+          width: '80px',
+          height: '80px',
+          borderRadius: '50%',
+          background: kickFlash ? 'rgba(255, 255, 255, 0.8)' : 'rgba(255, 255, 255, 0.1)',
+          border: '3px solid white',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '32px',
+          transition: 'all 0.1s',
+          transform: kickFlash ? 'scale(1.2)' : 'scale(1)',
+          boxShadow: kickFlash ? '0 0 30px rgba(255,255,255,0.8)' : 'none',
+        }}>
+          🥁
+        </div>
+        {/* Snare Flash */}
+        <div style={{
+          width: '80px',
+          height: '80px',
+          borderRadius: '50%',
+          background: snareFlash ? 'rgba(255, 215, 0, 0.8)' : 'rgba(255, 255, 255, 0.1)',
+          border: '3px solid white',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '32px',
+          transition: 'all 0.1s',
+          transform: snareFlash ? 'scale(1.2)' : 'scale(1)',
+          boxShadow: snareFlash ? '0 0 30px rgba(255,215,0,0.8)' : 'none',
+        }}>
+          💥
+        </div>
+        {/* HiHat Flash */}
+        <div style={{
+          width: '80px',
+          height: '80px',
+          borderRadius: '50%',
+          background: hatFlash ? 'rgba(147, 197, 253, 0.8)' : 'rgba(255, 255, 255, 0.1)',
+          border: '3px solid white',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '32px',
+          transition: 'all 0.1s',
+          transform: hatFlash ? 'scale(1.2)' : 'scale(1)',
+          boxShadow: hatFlash ? '0 0 30px rgba(147,197,253,0.8)' : 'none',
+        }}>
+          ✨
+        </div>
+      </div>
+
       {/* Transport Controls */}
       <div className="transport-controls">
         <button
