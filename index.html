@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collaborative Cursor Tracker - Supabase Realtime Demo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar for online users -->
+        <aside class="sidebar">
+            <h2>🟢 Online Users</h2>
+            <div id="user-list" class="user-list"></div>
+            <div class="info">
+                <p><strong>Your Info:</strong></p>
+                <p id="current-user"></p>
+            </div>
+        </aside>
+
+        <!-- Main canvas area -->
+        <main class="main-content">
+            <div class="header">
+                <h1>✨ Collaborative Cursor Tracker</h1>
+                <p>Move your mouse around. Open this in multiple tabs to test!</p>
+            </div>
+            <div id="cursor-area" class="cursor-area">
+                <!-- Cursors will be dynamically added here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Supabase JS Client from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+## Database schema (SQL)
+```sql
+create extension if not exists "uuid-ossp";
+
+create table rooms(
+  id uuid primary key default uuid_generate_v4(),
+  name text not null,
+  created_at timestamptz default now()
+);
+
+create table transport(
+  room_id uuid primary key references rooms(id) on delete cascade,
+  bpm int not null default 90,
+  key_root text not null default 'C',
+  scale_mode text not null default 'ionian',
+  bar_start timestamptz not null default now(),
+  is_playing boolean not null default true,
+  updated_at timestamptz default now()
+);
+
+create table progression(
+  room_id uuid references rooms(id) on delete cascade,
+  bar int not null,
+  rn text not null,
+  duration_bars int not null default 1,
+  primary key(room_id, bar)
+);
+
+create table instrument_params(
+  room_id uuid references rooms(id) on delete cascade,
+  instrument text not null check (instrument in ('bass','drums','harmony','melody')),
+  params jsonb not null,
+  updated_at timestamptz default now(),
+  primary key(room_id, instrument)
+);
+
+alter table rooms enable row level security;
+alter table transport enable row level security;
+alter table progression enable row level security;
+alter table instrument_params enable row level security;
+
+/* Simple demo-time RLS:
+   Allow anon to read/write for any room that already exists.
+   (For production, scope by auth or signed-room claims.) */
+create policy anon_select on rooms for select using (true);
+create policy anon_insert on rooms for insert with check (true);
+create policy anon_all_transport on transport for all using (true) with check (true);
+create policy anon_all_params on instrument_params for all using (true) with check (true);
+create policy anon_all_progression on progression for all using (true) with check (true);

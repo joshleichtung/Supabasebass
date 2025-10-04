@@ -1,0 +1,24 @@
+# Claude Code personal config
+.claude/
+
+# Supabase
+.branches
+.temp
+.vscode
+supabase/.branches
+supabase/.temp
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
