@@ -31,6 +31,11 @@ export default function DrumsView() {
   const saveTimeoutRef = useRef<number | null>(null)
   const drumsEngineRef = useRef<DrumsEngine | null>(null)
 
+  // Flash timeout refs for cleanup
+  const kickTimeoutRef = useRef<number | null>(null)
+  const snareTimeoutRef = useRef<number | null>(null)
+  const hatTimeoutRef = useRef<number | null>(null)
+
   // Initialize muted drums engine for visualization
   useEffect(() => {
     if (!drumsEngineRef.current) {
@@ -121,35 +126,22 @@ export default function DrumsView() {
   const handleSchedule = useCallback((time: number, stepIndex: number) => {
     setCurrentStep(stepIndex % 16) // Update visualization step
 
-    // Get current pattern from engine to show hit flashes - use Tone.Draw for synchronized updates
-    const engine = drumsEngineRef.current
-    if (engine) {
-      const step = stepIndex % 16
-      // Simplified: trigger flashes based on common patterns
-      if (step === 0 || step === 8) {
-        Tone.Draw.schedule(() => {
-          setKickFlash(true)
-        }, time)
-        Tone.Draw.schedule(() => {
-          setKickFlash(false)
-        }, time + 0.1)
-      }
-      if (step === 4 || step === 12) {
-        Tone.Draw.schedule(() => {
-          setSnareFlash(true)
-        }, time)
-        Tone.Draw.schedule(() => {
-          setSnareFlash(false)
-        }, time + 0.1)
-      }
-      if (step % 2 === 0) {
-        Tone.Draw.schedule(() => {
-          setHatFlash(true)
-        }, time)
-        Tone.Draw.schedule(() => {
-          setHatFlash(false)
-        }, time + 0.08)
-      }
+    // Trigger flashes - direct state updates (no Tone.Draw to avoid queue buildup)
+    const step = stepIndex % 16
+    if (step === 0 || step === 8) {
+      setKickFlash(true)
+      if (kickTimeoutRef.current) clearTimeout(kickTimeoutRef.current)
+      kickTimeoutRef.current = window.setTimeout(() => setKickFlash(false), 100)
+    }
+    if (step === 4 || step === 12) {
+      setSnareFlash(true)
+      if (snareTimeoutRef.current) clearTimeout(snareTimeoutRef.current)
+      snareTimeoutRef.current = window.setTimeout(() => setSnareFlash(false), 100)
+    }
+    if (step % 2 === 0) {
+      setHatFlash(true)
+      if (hatTimeoutRef.current) clearTimeout(hatTimeoutRef.current)
+      hatTimeoutRef.current = window.setTimeout(() => setHatFlash(false), 80)
     }
 
     drumsEngineRef.current?.scheduleHit(time, stepIndex)
@@ -158,6 +150,15 @@ export default function DrumsView() {
   // Use scheduler (correct parameter order: transport, callback, enabled)
   // Run independently of global isPlaying for local visualization
   useScheduler(transport, handleSchedule, audioStarted)
+
+  // Cleanup flash timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (kickTimeoutRef.current) clearTimeout(kickTimeoutRef.current)
+      if (snareTimeoutRef.current) clearTimeout(snareTimeoutRef.current)
+      if (hatTimeoutRef.current) clearTimeout(hatTimeoutRef.current)
+    }
+  }, [])
 
   if (!roomId) {
     return <div className="loading">No room ID provided</div>

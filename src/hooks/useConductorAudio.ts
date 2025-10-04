@@ -28,6 +28,11 @@ export function useConductorAudio(roomId: string | null, transport: TransportSta
   const [snareFlash, setSnareFlash] = useState(false)
   const [hatFlash, setHatFlash] = useState(false)
 
+  // Flash timeout refs for cleanup
+  const kickTimeoutRef = useRef<number | null>(null)
+  const snareTimeoutRef = useRef<number | null>(null)
+  const hatTimeoutRef = useRef<number | null>(null)
+
   // Audio engines
   const bassEngineRef = useRef<BassEngine | null>(null)
   const drumsEngineRef = useRef<DrumsEngine | null>(null)
@@ -120,30 +125,21 @@ export function useConductorAudio(roomId: string | null, transport: TransportSta
     const step = stepIndex % 16
     setCurrentStep(step)
 
-    // Trigger drum hit flashes based on pattern - use Tone.Draw for synchronized updates
+    // Trigger drum hit flashes - direct state updates (no Tone.Draw to avoid queue buildup)
     if (step === 0 || step === 8) {
-      Tone.Draw.schedule(() => {
-        setKickFlash(true)
-      }, time)
-      Tone.Draw.schedule(() => {
-        setKickFlash(false)
-      }, time + 0.1)
+      setKickFlash(true)
+      if (kickTimeoutRef.current) clearTimeout(kickTimeoutRef.current)
+      kickTimeoutRef.current = window.setTimeout(() => setKickFlash(false), 100)
     }
     if (step === 4 || step === 12) {
-      Tone.Draw.schedule(() => {
-        setSnareFlash(true)
-      }, time)
-      Tone.Draw.schedule(() => {
-        setSnareFlash(false)
-      }, time + 0.1)
+      setSnareFlash(true)
+      if (snareTimeoutRef.current) clearTimeout(snareTimeoutRef.current)
+      snareTimeoutRef.current = window.setTimeout(() => setSnareFlash(false), 100)
     }
     if (step % 2 === 0) {
-      Tone.Draw.schedule(() => {
-        setHatFlash(true)
-      }, time)
-      Tone.Draw.schedule(() => {
-        setHatFlash(false)
-      }, time + 0.08)
+      setHatFlash(true)
+      if (hatTimeoutRef.current) clearTimeout(hatTimeoutRef.current)
+      hatTimeoutRef.current = window.setTimeout(() => setHatFlash(false), 80)
     }
 
     // Get current chord from progression
@@ -171,6 +167,15 @@ export function useConductorAudio(roomId: string | null, transport: TransportSta
 
   // Attach scheduler
   useScheduler(transport, handleSchedule, audioStarted)
+
+  // Cleanup flash timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (kickTimeoutRef.current) clearTimeout(kickTimeoutRef.current)
+      if (snareTimeoutRef.current) clearTimeout(snareTimeoutRef.current)
+      if (hatTimeoutRef.current) clearTimeout(hatTimeoutRef.current)
+    }
+  }, [])
 
   return {
     audioStarted,
