@@ -149,7 +149,7 @@ export default function DrumsView() {
           Move cursor to control
         </div>
         <div style={{ fontSize: '14px', marginTop: '8px', opacity: 0.7 }}>
-          X: Density • Y: Swing
+          X: Density • Y: Groove
         </div>
         <div style={{ fontSize: '12px', marginTop: '12px', opacity: 0.6 }}>
           (Audio plays on Conductor view only)
@@ -222,7 +222,7 @@ export default function DrumsView() {
         gap: '20px',
       }}>
         <div>Density: {(params.x * 100).toFixed(0)}%</div>
-        <div>Swing: {(params.y * 100).toFixed(0)}%</div>
+        <div>Groove: {(params.y * 100).toFixed(0)}%</div>
       </div>
     </div>
   )

@@ -61,7 +61,7 @@ export class DrumsEngine {
   async start() {
     await Tone.start()
     this.isPlaying = true
-    this.currentPattern = morphPattern(this.params.x)
+    this.currentPattern = morphPattern(this.params.x, this.params.y)
     console.log('Drums engine started')
   }
 
@@ -77,12 +77,13 @@ export class DrumsEngine {
    */
   setParams(x: number, y: number, stutter = false, filterAmount = 0) {
     this.params = { x, y, stutter, filterAmount }
-    this.currentPattern = morphPattern(x)
+    this.currentPattern = morphPattern(x, y) // Pass both X and Y for density and groove
 
-    // Update filter cutoff based on filterAmount
+    // Update filter cutoff based on filterAmount - smooth ramp to avoid clicks
     const minFreq = 200
     const maxFreq = 20000
-    this.filter.frequency.value = minFreq + (maxFreq - minFreq) * (1 - filterAmount)
+    const targetFreq = minFreq + (maxFreq - minFreq) * (1 - filterAmount)
+    this.filter.frequency.rampTo(targetFreq, 0.05) // 50ms smooth ramp
   }
 
   /**
@@ -92,14 +93,9 @@ export class DrumsEngine {
     if (!this.isPlaying) return
 
     const step = stepIndex % 16
-    const { y, stutter } = this.params
+    const { stutter } = this.params
 
-    // Apply swing/humanization (Y axis)
-    // Higher Y = more humanization (random timing offset)
-    const humanizationAmount = y * 0.03 // Up to 30ms
-    const offset = (Math.random() - 0.5) * humanizationAmount
-
-    const hitTime = time + offset
+    const hitTime = time
 
     // Kick
     if (this.currentPattern.kick[step]) {
@@ -110,18 +106,21 @@ export class DrumsEngine {
       }
     }
 
-    // Snare
+    // Snare - ghost notes are quieter (positions 8, 16 and others)
     if (this.currentPattern.snare[step]) {
-      this.snare.triggerAttackRelease('8n', hitTime)
+      // Main backbeat (positions 4, 12) at full volume, others are ghosts
+      const isBackbeat = step === 4 || step === 12
+      const velocity = isBackbeat ? 1.0 : 0.4 // Ghost notes much quieter
+      this.snare.triggerAttackRelease('8n', hitTime, velocity)
 
       if (stutter) {
         this.stutterBuffer.push({ type: 'snare', time: hitTime })
       }
     }
 
-    // Hi-hat
+    // Hi-hat - vary velocity for natural feel
     if (this.currentPattern.hat[step]) {
-      const velocity = 0.3 + Math.random() * 0.4 // Vary hi-hat velocity
+      const velocity = 0.4 + Math.random() * 0.3 // Vary hi-hat velocity
       this.hihat.triggerAttackRelease('32n', hitTime, velocity)
 
       if (stutter) {
