@@ -3,11 +3,13 @@ import { useSearchParams } from 'react-router-dom'
 import { usePresence } from '../hooks/usePresence'
 import { useTransport } from '../hooks/useTransport'
 import { useConductorAudio } from '../hooks/useConductorAudio'
+import { useResolvedRoomId } from '../hooks/useResolvedRoomId'
 import type { PresenceState } from '../types/presence'
 
 export default function ConductorView() {
   const [searchParams] = useSearchParams()
-  const roomId = searchParams.get('r')
+  const roomCode = searchParams.get('r')
+  const roomId = useResolvedRoomId(roomCode) // Resolve short code to UUID
 
   const { users, isHost } = usePresence(roomId, 'conductor')
   const { state: transport, bpm, barIndex, isPlaying } = useTransport(roomId, isHost)

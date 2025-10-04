@@ -3,12 +3,14 @@ import { useSearchParams } from 'react-router-dom'
 import { usePresence } from '../hooks/usePresence'
 import { useTransport } from '../hooks/useTransport'
 import { useInstrumentBroadcast } from '../hooks/useInstrumentBroadcast'
+import { useResolvedRoomId } from '../hooks/useResolvedRoomId'
 import XYPad from '../components/XYPad'
 import { saveInstrumentParams, loadInstrumentParams } from '../lib/room-manager'
 
 export default function DrumsView() {
   const [searchParams] = useSearchParams()
-  const roomId = searchParams.get('r')
+  const roomCode = searchParams.get('r')
+  const roomId = useResolvedRoomId(roomCode) // Resolve short code to UUID
 
   const { isHost, userCount } = usePresence(roomId, 'drums')
   const { state: transport, togglePlay, isPlaying, bpm } = useTransport(roomId, isHost)
