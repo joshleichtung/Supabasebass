@@ -11,6 +11,8 @@ import { theme } from '../design/theme'
 import BassIcon from '../components/icons/BassIcon'
 import DrumsIcon from '../components/icons/DrumsIcon'
 import MusicIcon from '../components/icons/MusicIcon'
+import PlayIcon from '../components/icons/PlayIcon'
+import PauseIcon from '../components/icons/PauseIcon'
 
 export default function StageView() {
   const [searchParams] = useSearchParams()
@@ -310,10 +312,11 @@ export default function StageView() {
             gap: '20px',
           }}>
             <div style={{
-              fontSize: '64px',
               textAlign: 'center',
+              display: 'flex',
+              justifyContent: 'center',
             }}>
-              🎸
+              <BassIcon size={64} color="white" />
             </div>
             <div style={{
               color: 'white',
@@ -335,13 +338,15 @@ export default function StageView() {
 
             {soloedInstrument === 'bass' && (
               <div style={{
-                color: '#ffd700',
+                color: theme.colors.neon.yellow,
                 fontSize: '20px',
-                fontWeight: '700',
+                fontWeight: '800',
                 textAlign: 'center',
                 animation: 'pulse 2s infinite',
+                textShadow: theme.shadows.glow.cyan,
+                letterSpacing: '2px',
               }}>
-                ⭐ SOLO
+                SOLO
               </div>
             )}
           </div>
@@ -463,10 +468,11 @@ export default function StageView() {
             gap: '20px',
           }}>
             <div style={{
-              fontSize: '64px',
               textAlign: 'center',
+              display: 'flex',
+              justifyContent: 'center',
             }}>
-              🥁
+              <DrumsIcon size={64} color="white" />
             </div>
             <div style={{
               color: 'white',
@@ -493,22 +499,25 @@ export default function StageView() {
                 gap: '8px',
                 justifyContent: 'center',
                 fontSize: '12px',
-                color: 'rgba(255,255,255,0.7)',
+                color: theme.colors.neon.yellow,
+                fontWeight: '600',
               }}>
-                {(drumsParams.fx.stutter as boolean) && <div>⚡ Stutter</div>}
-                {(drumsParams.fx.filterAmount as number) > 0.1 && <div>🎛️ Filter</div>}
+                {(drumsParams.fx.stutter as boolean) && <div>Stutter</div>}
+                {(drumsParams.fx.filterAmount as number) > 0.1 && <div>Filter</div>}
               </div>
             )}
 
             {soloedInstrument === 'drums' && (
               <div style={{
-                color: '#ffd700',
+                color: theme.colors.neon.yellow,
                 fontSize: '20px',
-                fontWeight: '700',
+                fontWeight: '800',
                 textAlign: 'center',
                 animation: 'pulse 2s infinite',
+                textShadow: theme.shadows.glow.cyan,
+                letterSpacing: '2px',
               }}>
-                ⭐ SOLO
+                SOLO
               </div>
             )}
           </div>
@@ -531,7 +540,10 @@ export default function StageView() {
       }}>
         {/* Bass FX */}
         <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-          <div style={{ color: '#6366f1', fontWeight: '700', fontSize: '14px' }}>🎸 BASS FX:</div>
+          <div style={{ color: '#6366f1', fontWeight: '700', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <BassIcon size={16} color="#6366f1" />
+            BASS FX:
+          </div>
 
           <button
             onClick={() => setBassFX({ ...bassFX, autoWah: !bassFX.autoWah })}
@@ -578,7 +590,10 @@ export default function StageView() {
 
         {/* Drums FX */}
         <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-          <div style={{ color: '#f5576c', fontWeight: '700', fontSize: '14px' }}>🥁 DRUMS FX:</div>
+          <div style={{ color: '#f5576c', fontWeight: '700', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <DrumsIcon size={16} color="#f5576c" />
+            DRUMS FX:
+          </div>
 
           <button
             onClick={() => setDrumsFX({ ...drumsFX, stutter: !drumsFX.stutter })}
@@ -686,7 +701,7 @@ export default function StageView() {
               e.currentTarget.style.transform = 'scale(1)'
             }}
           >
-            {isPlaying ? '⏸️' : '▶️'}
+            {isPlaying ? <PauseIcon size={32} color="white" /> : <PlayIcon size={32} color="white" />}
           </button>
 
           {/* BPM Control */}
@@ -735,7 +750,6 @@ export default function StageView() {
 
         {/* Right: Host indicator */}
         <div style={{
-          color: isHost ? '#ffd700' : 'rgba(255,255,255,0.6)',
           fontSize: '14px',
           fontWeight: '700',
           textAlign: 'right',
@@ -743,9 +757,20 @@ export default function StageView() {
           flexDirection: 'column',
           gap: '4px',
         }}>
-          {isHost && <div>⭐ HOST</div>}
-          {isHost && <div style={{ fontSize: '12px' }}>Press SPACE</div>}
-          {!isHost && <div>Listener</div>}
+          {isHost && (
+            <div style={{
+              background: theme.colors.gradient.stage,
+              padding: '6px 16px',
+              borderRadius: '8px',
+              color: 'white',
+              textShadow: theme.shadows.glow.cyan,
+              letterSpacing: '1px',
+            }}>
+              HOST
+            </div>
+          )}
+          {isHost && <div style={{ fontSize: '12px', color: theme.colors.neon.yellow }}>Press SPACE</div>}
+          {!isHost && <div style={{ color: 'rgba(255,255,255,0.6)' }}>Listener</div>}
         </div>
       </div>
 
