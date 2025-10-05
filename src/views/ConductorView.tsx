@@ -22,7 +22,6 @@ export default function ConductorView() {
     drumsParams,
     currentStep,
     bassEngine,
-    drumsEngine,
     kickFlash,
     snareFlash,
     hatFlash,
@@ -103,8 +102,6 @@ export default function ConductorView() {
   if (!roomId) {
     return <div className="loading">No room ID provided</div>
   }
-
-  const playheadProgress = ((barIndex % 4) / 4) * 100 // 4-bar loop
 
   return (
     <div
@@ -491,7 +488,7 @@ export default function ConductorView() {
                 fontSize: '12px',
                 color: 'rgba(255,255,255,0.7)',
               }}>
-                {drumsParams.fx.stutter && <div>⚡ Stutter</div>}
+                {(drumsParams.fx.stutter as boolean) && <div>⚡ Stutter</div>}
                 {(drumsParams.fx.filterAmount as number) > 0.1 && <div>🎛️ Filter</div>}
               </div>
             )}

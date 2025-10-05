@@ -1,6 +1,6 @@
 // Bass instrument engine stub
-export function bassNoteFor(x:number, y:number, key='C', mode='ionian', rn='I', prev=48, stepIndex=0){
-  // x controls density externally; y controls complexity
+export function bassNoteFor(_x:number, y:number, key='C', mode='ionian', rn='I', _prev=48, stepIndex=0){
+  // _x controls density externally (handled by caller); y controls complexity
   // Return MIDI note number for next trigger based on y
   const scale = {ionian:[0,2,4,5,7,9,11], dorian:[0,2,3,5,7,9,10]}[mode]||[0,2,4,5,7,9,11]
   const degreeMap:any = {I:0,ii:1,iii:2,IV:3,V:4,vi:5,vii:6,i:0}

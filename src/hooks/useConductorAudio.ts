@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { RealtimeChannel } from '@supabase/supabase-js'
-import * as Tone from 'tone'
 import { supabase } from '../lib/supabase'
 import { channelNames } from '../realtime/channels'
 import { BassEngine } from '../instruments/bass/BassEngine'

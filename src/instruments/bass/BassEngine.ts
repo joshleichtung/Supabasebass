@@ -25,17 +25,7 @@ export class BassEngine {
     this.volume = new Tone.Volume(muted ? -Infinity : -8).toDestination()
 
     // Create effects chain
-    this.autoWah = new Tone.AutoWah({
-      baseFrequency: 100,
-      octaves: 6,
-      sensitivity: 0,
-      Q: 2,
-      gain: 2,
-      follower: {
-        attack: 0.3,
-        release: 0.5,
-      },
-    })
+    this.autoWah = new Tone.AutoWah(100, 6, 0)
 
     this.filter = new Tone.Filter({
       type: 'lowpass',

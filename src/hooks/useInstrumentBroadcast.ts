@@ -65,7 +65,8 @@ export function useInstrumentBroadcast(
       throttleRef.current = null
     }, 16) // ~60fps
 
-    const message = {
+    console.log(`[${instrument}] Broadcasting params:`, params)
+    channelRef.current.send({
       type: 'broadcast',
       event: 'instr:update',
       payload: {
@@ -73,10 +74,7 @@ export function useInstrumentBroadcast(
         params,
         ts: Date.now()
       }
-    }
-
-    console.log(`[${instrument}] Broadcasting params:`, params)
-    channelRef.current.send(message)
+    })
   }, [instrument])
 
   return { broadcastParams }
