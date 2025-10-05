@@ -476,6 +476,16 @@ export default function LandingView() {
             Open <strong style={{ color: theme.colors.neon.blue }}>Bass</strong> and <strong style={{ color: theme.colors.neon.pink }}>Drums</strong> on different devices,
             then launch <strong style={{ color: theme.colors.neon.cyan }}>Stage View</strong> on your main screen to hear it all.
           </p>
+          <p style={{
+            color: theme.colors.neon.magenta,
+            fontSize: '14px',
+            lineHeight: '1.5',
+            marginTop: '12px',
+            marginBottom: 0,
+            fontStyle: 'italic'
+          }}>
+            Note: Only <strong>Stage</strong> plays audio. Bass and Drums are silent controllers.
+          </p>
         </div>
       </div>
 
