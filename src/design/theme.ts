@@ -21,7 +21,7 @@ export const theme = {
     gradient: {
       bass: 'linear-gradient(135deg, #4361ee 0%, #7209b7 100%)',
       drums: 'linear-gradient(135deg, #ff006e 0%, #f72585 100%)',
-      conductor: 'linear-gradient(135deg, #7209b7 0%, #06ffa5 100%)',
+      stage: 'linear-gradient(135deg, #7209b7 0%, #06ffa5 100%)',
       primary: 'linear-gradient(135deg, #06ffa5 0%, #4361ee 100%)',
       secondary: 'linear-gradient(135deg, #ff006e 0%, #7209b7 100%)',
     },

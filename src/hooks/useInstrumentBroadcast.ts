@@ -5,7 +5,7 @@ import { channelNames } from '../realtime/channels'
 
 /**
  * Broadcast instrument params without playing audio
- * Instruments just send params, Conductor plays the audio
+ * Instruments just send params, Stage plays the audio
  */
 export function useInstrumentBroadcast(
   roomId: string | null,

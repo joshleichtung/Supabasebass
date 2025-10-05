@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { usePresence } from '../hooks/usePresence'
 import { useTransport } from '../hooks/useTransport'
-import { useConductorAudio } from '../hooks/useConductorAudio'
+import { useStageAudio } from '../hooks/useStageAudio'
 import { useResolvedRoomId } from '../hooks/useResolvedRoomId'
 import BassVisuals from '../instruments/bass/BassVisuals'
 import DrumsVisuals from '../instruments/drums/DrumsVisuals'
@@ -12,12 +12,12 @@ import BassIcon from '../components/icons/BassIcon'
 import DrumsIcon from '../components/icons/DrumsIcon'
 import MusicIcon from '../components/icons/MusicIcon'
 
-export default function ConductorView() {
+export default function StageView() {
   const [searchParams] = useSearchParams()
   const roomCode = searchParams.get('r')
   const roomId = useResolvedRoomId(roomCode) // Resolve short code to UUID
 
-  const { users, isHost } = usePresence(roomId, 'conductor')
+  const { users, isHost } = usePresence(roomId, 'stage')
   const { state: transport, togglePlay, setBpm, bpm, barIndex, isPlaying } = useTransport(roomId, isHost)
   const {
     audioStarted,
@@ -33,7 +33,7 @@ export default function ConductorView() {
     setBassFX,
     drumsFX,
     setDrumsFX,
-  } = useConductorAudio(roomId, transport)
+  } = useStageAudio(roomId, transport)
 
   const [soloedInstrument, setSoloedInstrument] = useState<string | null>(null)
   const [soloTimeout, setSoloTimeout] = useState<number | null>(null)
@@ -48,7 +48,7 @@ export default function ConductorView() {
     }
 
     Object.values(users).forEach(user => {
-      if (user.instrument && user.instrument !== 'conductor') {
+      if (user.instrument && user.instrument !== 'stage') {
         if (!result[user.instrument]) {
           result[user.instrument] = []
         }
@@ -174,7 +174,7 @@ export default function ConductorView() {
           textAlign: 'center',
           letterSpacing: '2px'
         }}>
-          JamSync Conductor
+          JamSync Stage
         </h1>
       </div>
 

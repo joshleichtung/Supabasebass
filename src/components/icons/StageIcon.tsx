@@ -1,4 +1,4 @@
-export default function ConductorIcon({ size = 64, color = '#06ffa5' }: { size?: number; color?: string }) {
+export default function StageIcon({ size = 64, color = '#06ffa5' }: { size?: number; color?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
       {/* Waveform visualization */}

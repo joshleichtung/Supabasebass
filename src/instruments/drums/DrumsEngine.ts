@@ -61,7 +61,7 @@ export class DrumsEngine {
     this.filter.connect(this.delay)
     this.delay.toDestination()
 
-    // Set volumes - mute for visualization-only (instrument views), audible for conductor
+    // Set volumes - mute for visualization-only (instrument views), audible for stage
     if (muted) {
       this.kick.volume.value = -Infinity
       this.snare.volume.value = -Infinity

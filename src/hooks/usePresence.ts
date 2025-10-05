@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 import { channelNames } from '../realtime/channels'
 import type { PresenceState } from '../types/presence'
 
-export function usePresence(roomId: string | null, instrument: 'bass' | 'drums' | 'harmony' | 'melody' | 'conductor' | null) {
+export function usePresence(roomId: string | null, instrument: 'bass' | 'drums' | 'harmony' | 'melody' | 'stage' | null) {
   const [users, setUsers] = useState<Record<string, PresenceState>>({})
   const [isHost, setIsHost] = useState(false)
   const [userId] = useState(() => `user-${Math.random().toString(36).substr(2, 9)}`)

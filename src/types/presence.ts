@@ -1,7 +1,7 @@
 export interface PresenceState {
   user_id: string
   name: string
-  instrument: 'bass' | 'drums' | 'harmony' | 'melody' | 'conductor' | null
+  instrument: 'bass' | 'drums' | 'harmony' | 'melody' | 'stage' | null
   joined_at: string
   is_host: boolean
 }

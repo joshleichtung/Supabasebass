@@ -4,7 +4,7 @@ import { createRoom as createRoomDB, joinRoom as joinRoomDB } from '../lib/room-
 import { theme } from '../design/theme'
 import BassIcon from '../components/icons/BassIcon'
 import DrumsIcon from '../components/icons/DrumsIcon'
-import ConductorIcon from '../components/icons/ConductorIcon'
+import StageIcon from '../components/icons/StageIcon'
 import MusicIcon from '../components/icons/MusicIcon'
 
 export default function LandingView() {
@@ -283,9 +283,9 @@ export default function LandingView() {
           </button>
         </div>
 
-        {/* Conductor Button */}
+        {/* Stage Button */}
         <button
-          onClick={() => navigate(`/conductor?r=${roomId}`)}
+          onClick={() => navigate(`/stage?r=${roomId}`)}
           style={{
             padding: '16px 32px',
             fontSize: '16px',
@@ -311,9 +311,53 @@ export default function LandingView() {
             e.currentTarget.style.boxShadow = 'none'
           }}
         >
-          <ConductorIcon size={24} color="currentColor" />
-          Conductor View
+          <StageIcon size={24} color="currentColor" />
+          Stage View
         </button>
+
+        {/* Demo Instructions */}
+        <div style={{
+          marginTop: '40px',
+          maxWidth: '600px',
+          background: theme.colors.bg.overlay,
+          padding: '24px 32px',
+          borderRadius: '16px',
+          border: `2px solid ${theme.colors.neon.purple}`,
+          backdropFilter: 'blur(10px)',
+          textAlign: 'left'
+        }}>
+          <h3 style={{
+            color: theme.colors.neon.yellow,
+            fontSize: '20px',
+            fontWeight: '700',
+            marginBottom: '16px',
+            textAlign: 'center'
+          }}>
+            How to Demo
+          </h3>
+          <ol style={{
+            color: theme.colors.neon.cyan,
+            fontSize: '16px',
+            lineHeight: '1.8',
+            paddingLeft: '20px',
+            margin: 0
+          }}>
+            <li>Open <strong>Stage View</strong> on your projector/main screen</li>
+            <li>Open <strong>Bass</strong> in a new tab or on a tablet</li>
+            <li>Open <strong>Drums</strong> in another tab or device</li>
+            <li>Press <strong style={{ color: theme.colors.neon.magenta }}>Play</strong> on the Stage</li>
+            <li>Move the <strong style={{ color: theme.colors.neon.yellow }}>XY pads</strong> on Bass/Drums - changes sync live!</li>
+          </ol>
+          <p style={{
+            color: theme.colors.neon.magenta,
+            fontSize: '14px',
+            marginTop: '16px',
+            fontStyle: 'italic',
+            textAlign: 'center'
+          }}>
+            Audio plays from Stage only. Click Stage to unlock audio.
+          </p>
+        </div>
       </div>
     )
   }

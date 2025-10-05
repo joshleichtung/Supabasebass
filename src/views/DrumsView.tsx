@@ -97,7 +97,7 @@ export default function DrumsView() {
     }
   }, [audioStarted])
 
-  // Handle XY pad movement - broadcast only XY (FX controlled from conductor)
+  // Handle XY pad movement - broadcast only XY (FX controlled from stage)
   const handleMove = useCallback((x: number, y: number) => {
     // Always update local state for smooth feedback
     setParams({ x, y })
@@ -297,7 +297,7 @@ export default function DrumsView() {
         </div>
         <div style={{ fontSize: '12px', marginTop: '12px', opacity: 0.6, color: theme.colors.neon.yellow }}>
           {!audioStarted && '(Move cursor to start visualization)'}
-          {audioStarted && '(Muted - Audio plays on Conductor only)'}
+          {audioStarted && '(Muted - Audio plays on Stage only)'}
         </div>
       </div>
 

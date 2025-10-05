@@ -15,11 +15,11 @@ interface InstrumentParams {
 }
 
 /**
- * Conductor audio hook - plays ALL instruments locally
+ * Stage audio hook - plays ALL instruments locally
  * Listens to param updates from all instrument channels
  * Local timing, no backend blocking
  */
-export function useConductorAudio(roomId: string | null, transport: TransportState) {
+export function useStageAudio(roomId: string | null, transport: TransportState) {
   const [audioStarted, setAudioStarted] = useState(false)
 
   // Use refs instead of state for visual feedback (decouples from React render cycle)
@@ -45,7 +45,7 @@ export function useConductorAudio(roomId: string | null, transport: TransportSta
   const [bassParams, setBassParams] = useState<InstrumentParams>({ x: 0.5, y: 0.5 })
   const [drumsParams, setDrumsParams] = useState<InstrumentParams>({ x: 0.5, y: 0.5, fx: {} })
 
-  // FX state (controlled locally on conductor)
+  // FX state (controlled locally on stage)
   const [bassFX, setBassFX] = useState({ autoWah: false, filterAmount: 0, delayAmount: 0 })
   const [drumsFX, setDrumsFX] = useState({ stutter: false, filterAmount: 0, delayAmount: 0 })
 
