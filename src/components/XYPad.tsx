@@ -39,9 +39,11 @@ export default function XYPad({ onMove, color = '#667eea', children }: XYPadProp
   }, [handleMove])
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    // Track cursor on hover for smooth control
-    handleMove(e.clientX, e.clientY)
-  }, [handleMove])
+    // Only track when active (pointer down) to fix mobile touch issues
+    if (isActive) {
+      handleMove(e.clientX, e.clientY)
+    }
+  }, [handleMove, isActive])
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
     setIsActive(false)

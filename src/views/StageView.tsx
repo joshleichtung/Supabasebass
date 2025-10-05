@@ -126,6 +126,7 @@ export default function StageView() {
       {!audioStarted && (
         <div
           onClick={startAudio}
+          onTouchStart={startAudio}
           style={{
             position: 'absolute',
             top: 0,

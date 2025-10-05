@@ -77,11 +77,6 @@ export default function BassView() {
       lastBroadcastParamsRef.current = { x, y }
     }
 
-    // Start audio on first interaction (for visualization)
-    if (!audioStarted) {
-      startAudio()
-    }
-
     // Debounced save (every 3s)
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current)
@@ -92,7 +87,14 @@ export default function BassView() {
         saveInstrumentParams(roomId, 'bass', { x, y })
       }
     }, 3000)
-  }, [roomId, broadcastParams, audioStarted, startAudio])
+  }, [roomId, broadcastParams])
+
+  // Handle first touch/click - start audio synchronously for mobile compatibility
+  const handleFirstInteraction = useCallback(() => {
+    if (!audioStarted) {
+      startAudio()
+    }
+  }, [audioStarted, startAudio])
 
   // Scheduler callback - plays muted bass locally for visualization
   const handleSchedule = useCallback((time: number, stepIndex: number) => {
@@ -152,11 +154,13 @@ export default function BassView() {
       </div>
 
       {/* XY Pad with bass waveform visualization */}
-      <XYPad onMove={handleMove} color={theme.colors.neon.blue}>
-        {audioStarted && bassEngineRef.current && (
-          <BassVisuals synth={bassEngineRef.current.getSynth()} color={theme.colors.neon.blue} />
-        )}
-      </XYPad>
+      <div onClick={handleFirstInteraction} onTouchStart={handleFirstInteraction} style={{ width: '100%', height: '100%' }}>
+        <XYPad onMove={handleMove} color={theme.colors.neon.blue}>
+          {audioStarted && bassEngineRef.current && (
+            <BassVisuals synth={bassEngineRef.current.getSynth()} color={theme.colors.neon.blue} />
+          )}
+        </XYPad>
+      </div>
 
       {/* Instructions */}
       <div style={{

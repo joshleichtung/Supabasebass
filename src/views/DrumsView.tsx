@@ -111,11 +111,6 @@ export default function DrumsView() {
       lastBroadcastParamsRef.current = { x, y }
     }
 
-    // Start audio on first interaction (for visualization)
-    if (!audioStarted) {
-      startAudio()
-    }
-
     // Debounced save
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current)
@@ -126,7 +121,14 @@ export default function DrumsView() {
         saveInstrumentParams(roomId, 'drums', { x, y })
       }
     }, 3000)
-  }, [roomId, broadcastParams, audioStarted, startAudio])
+  }, [roomId, broadcastParams])
+
+  // Handle first touch/click - start audio synchronously for mobile compatibility
+  const handleFirstInteraction = useCallback(() => {
+    if (!audioStarted) {
+      startAudio()
+    }
+  }, [audioStarted, startAudio])
 
   // Scheduler callback - plays muted drums locally for visualization (uses refs, not state)
   const handleSchedule = useCallback((time: number, stepIndex: number) => {
@@ -268,11 +270,13 @@ export default function DrumsView() {
       </div>
 
       {/* XY Pad with drum arc visualization */}
-      <XYPad onMove={handleMove} color={theme.colors.neon.pink}>
-        {audioStarted && (
-          <DrumsVisuals currentStep={currentStepRef.current} color={theme.colors.neon.pink} />
-        )}
-      </XYPad>
+      <div onClick={handleFirstInteraction} onTouchStart={handleFirstInteraction} style={{ width: '100%', height: '100%' }}>
+        <XYPad onMove={handleMove} color={theme.colors.neon.pink}>
+          {audioStarted && (
+            <DrumsVisuals currentStep={currentStepRef.current} color={theme.colors.neon.pink} />
+          )}
+        </XYPad>
+      </div>
 
       {/* Instructions */}
       <div style={{
