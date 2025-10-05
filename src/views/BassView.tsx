@@ -10,6 +10,8 @@ import { BassEngine } from '../instruments/bass/BassEngine'
 import BassVisuals from '../instruments/bass/BassVisuals'
 import XYPad from '../components/XYPad'
 import { saveInstrumentParams, loadInstrumentParams } from '../lib/room-manager'
+import { theme } from '../design/theme'
+import BassIcon from '../components/icons/BassIcon'
 
 export default function BassView() {
   const [searchParams] = useSearchParams()
@@ -108,31 +110,51 @@ export default function BassView() {
   useScheduler(transport, handleSchedule, audioStarted)
 
   if (!roomId) {
-    return <div className="loading">No room ID provided</div>
+    return <div className="loading" style={{ background: theme.colors.bg.primary, color: theme.colors.neon.cyan }}>No room ID provided</div>
   }
 
   return (
     <div
       className="fullscreen"
       style={{
-        background: 'linear-gradient(135deg, #1e3a8a 0%, #6366f1 100%)',
+        background: theme.colors.bg.primary,
         position: 'relative',
+        overflow: 'hidden'
       }}
     >
+      {/* Vaporwave background effects */}
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: theme.colors.gradient.bass,
+        opacity: 0.1,
+        pointerEvents: 'none'
+      }} />
+
       {/* Presence */}
-      <div className="presence-list">
-        <div style={{ fontWeight: '700', marginBottom: '8px' }}>
+      <div className="presence-list" style={{
+        background: theme.colors.bg.overlay,
+        border: `2px solid ${theme.colors.neon.blue}`,
+        boxShadow: theme.shadows.glow.cyan,
+        backdropFilter: 'blur(10px)',
+        color: theme.colors.neon.cyan
+      }}>
+        <div style={{ fontWeight: '700', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <BassIcon size={20} color={theme.colors.neon.blue} />
           Online: {userCount}
         </div>
-        <div className="presence-item">
-          🎸 Bass (You)
+        <div className="presence-item" style={{ color: theme.colors.neon.cyan }}>
+          Bass (You)
         </div>
       </div>
 
       {/* XY Pad with bass waveform visualization */}
-      <XYPad onMove={handleMove} color="#6366f1">
+      <XYPad onMove={handleMove} color={theme.colors.neon.blue}>
         {audioStarted && bassEngineRef.current && (
-          <BassVisuals synth={bassEngineRef.current.getSynth()} color="#6366f1" />
+          <BassVisuals synth={bassEngineRef.current.getSynth()} color={theme.colors.neon.blue} />
         )}
       </XYPad>
 
@@ -145,18 +167,19 @@ export default function BassView() {
         textAlign: 'center',
         color: 'white',
         fontSize: '24px',
-        fontWeight: '600',
-        textShadow: '0 2px 4px rgba(0,0,0,0.5)',
+        fontWeight: '700',
+        textShadow: theme.shadows.glow.cyan,
         pointerEvents: 'none',
       }}>
-        <div>🎸 Bass Control</div>
-        <div style={{ fontSize: '16px', marginTop: '12px', opacity: 0.8 }}>
+        <BassIcon size={64} color={theme.colors.neon.cyan} />
+        <div style={{ marginTop: '16px', color: theme.colors.neon.cyan }}>Bass Control</div>
+        <div style={{ fontSize: '16px', marginTop: '12px', opacity: 0.8, color: theme.colors.neon.magenta }}>
           Move cursor to control
         </div>
-        <div style={{ fontSize: '14px', marginTop: '8px', opacity: 0.7 }}>
+        <div style={{ fontSize: '14px', marginTop: '8px', opacity: 0.7, color: 'white' }}>
           X: Density • Y: Complexity
         </div>
-        <div style={{ fontSize: '12px', marginTop: '12px', opacity: 0.6, maxWidth: '400px' }}>
+        <div style={{ fontSize: '12px', marginTop: '12px', opacity: 0.6, maxWidth: '400px', color: theme.colors.neon.yellow }}>
           {!audioStarted && '(Move cursor to start visualization)'}
           {audioStarted && '(Muted - Audio plays on Conductor only)'}
         </div>
@@ -165,16 +188,21 @@ export default function BassView() {
       {/* Param Display */}
       <div style={{
         position: 'absolute',
-        bottom: '20px',
+        bottom: '24px',
         left: '50%',
         transform: 'translateX(-50%)',
-        background: 'rgba(0,0,0,0.7)',
-        padding: '12px 20px',
-        borderRadius: '8px',
-        color: 'white',
-        fontSize: '14px',
+        background: theme.colors.bg.overlay,
+        padding: '16px 28px',
+        borderRadius: '12px',
+        color: theme.colors.neon.cyan,
+        fontSize: '16px',
         display: 'flex',
-        gap: '20px',
+        gap: '32px',
+        border: `2px solid ${theme.colors.neon.blue}`,
+        boxShadow: theme.shadows.glow.cyan,
+        backdropFilter: 'blur(10px)',
+        fontWeight: '700',
+        fontFamily: theme.typography.fontMono
       }}>
         <div>Density: {(params.x * 100).toFixed(0)}%</div>
         <div>Complexity: {(params.y * 100).toFixed(0)}%</div>

@@ -10,6 +10,8 @@ import { DrumsEngine } from '../instruments/drums/DrumsEngine'
 import DrumsVisuals from '../instruments/drums/DrumsVisuals'
 import XYPad from '../components/XYPad'
 import { saveInstrumentParams, loadInstrumentParams } from '../lib/room-manager'
+import { theme } from '../design/theme'
+import DrumsIcon from '../components/icons/DrumsIcon'
 
 export default function DrumsView() {
   const [searchParams] = useSearchParams()
@@ -172,17 +174,30 @@ export default function DrumsView() {
   }, [])
 
   if (!roomId) {
-    return <div className="loading">No room ID provided</div>
+    return <div className="loading" style={{ background: theme.colors.bg.primary, color: theme.colors.neon.pink }}>No room ID provided</div>
   }
 
   return (
     <div
       className="fullscreen"
       style={{
-        background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+        background: theme.colors.bg.primary,
         position: 'relative',
+        overflow: 'hidden'
       }}
     >
+      {/* Vaporwave background effects */}
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: theme.colors.gradient.drums,
+        opacity: 0.1,
+        pointerEvents: 'none'
+      }} />
+
       {/* Drum Hit Flash Indicators */}
       <div style={{
         position: 'absolute',
@@ -190,65 +205,72 @@ export default function DrumsView() {
         left: '50%',
         transform: 'translateX(-50%)',
         display: 'flex',
-        gap: '20px',
+        gap: '24px',
         pointerEvents: 'none',
         zIndex: 10,
       }}>
         {/* Kick Flash */}
         <div style={{
-          width: '80px',
-          height: '80px',
+          width: '90px',
+          height: '90px',
           borderRadius: '50%',
           background: kickFlashRef.current
-            ? 'radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%)'
-            : 'rgba(255, 255, 255, 0.1)',
-          border: '2px solid rgba(255,255,255,0.3)',
+            ? `radial-gradient(circle, ${theme.colors.neon.pink} 0%, rgba(255,0,110,0.4) 50%, rgba(255,0,110,0) 100%)`
+            : theme.colors.bg.tertiary,
+          border: `3px solid ${theme.colors.neon.pink}`,
           transition: 'all 0.05s',
           transform: kickFlashRef.current ? 'scale(1.3)' : 'scale(1)',
-          boxShadow: kickFlashRef.current ? '0 0 40px rgba(255,255,255,1)' : 'none',
+          boxShadow: kickFlashRef.current ? theme.shadows.glow.strong : theme.shadows.elevation.low,
         }} />
         {/* Snare Flash */}
         <div style={{
-          width: '80px',
-          height: '80px',
+          width: '90px',
+          height: '90px',
           borderRadius: '50%',
           background: snareFlashRef.current
-            ? 'radial-gradient(circle, rgba(255,215,0,0.9) 0%, rgba(255,215,0,0.4) 50%, rgba(255,215,0,0) 100%)'
-            : 'rgba(255, 255, 255, 0.1)',
-          border: '2px solid rgba(255,255,255,0.3)',
+            ? `radial-gradient(circle, ${theme.colors.neon.yellow} 0%, rgba(255,214,10,0.4) 50%, rgba(255,214,10,0) 100%)`
+            : theme.colors.bg.tertiary,
+          border: `3px solid ${theme.colors.neon.yellow}`,
           transition: 'all 0.05s',
           transform: snareFlashRef.current ? 'scale(1.3)' : 'scale(1)',
-          boxShadow: snareFlashRef.current ? '0 0 40px rgba(255,215,0,1)' : 'none',
+          boxShadow: snareFlashRef.current ? `0 0 40px ${theme.colors.neon.yellow}` : theme.shadows.elevation.low,
         }} />
         {/* HiHat Flash */}
         <div style={{
-          width: '80px',
-          height: '80px',
+          width: '90px',
+          height: '90px',
           borderRadius: '50%',
           background: hatFlashRef.current
-            ? 'radial-gradient(circle, rgba(147,197,253,0.9) 0%, rgba(147,197,253,0.4) 50%, rgba(147,197,253,0) 100%)'
-            : 'rgba(255, 255, 255, 0.1)',
-          border: '2px solid rgba(255,255,255,0.3)',
+            ? `radial-gradient(circle, ${theme.colors.neon.cyan} 0%, rgba(6,255,165,0.4) 50%, rgba(6,255,165,0) 100%)`
+            : theme.colors.bg.tertiary,
+          border: `3px solid ${theme.colors.neon.cyan}`,
           transition: 'all 0.05s',
           transform: hatFlashRef.current ? 'scale(1.3)' : 'scale(1)',
-          boxShadow: hatFlashRef.current ? '0 0 40px rgba(147,197,253,1)' : 'none',
+          boxShadow: hatFlashRef.current ? theme.shadows.glow.cyan : theme.shadows.elevation.low,
         }} />
       </div>
 
       {/* Presence */}
-      <div className="presence-list">
-        <div style={{ fontWeight: '700', marginBottom: '8px' }}>
+      <div className="presence-list" style={{
+        background: theme.colors.bg.overlay,
+        border: `2px solid ${theme.colors.neon.pink}`,
+        boxShadow: theme.shadows.glow.pink,
+        backdropFilter: 'blur(10px)',
+        color: theme.colors.neon.pink
+      }}>
+        <div style={{ fontWeight: '700', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <DrumsIcon size={20} color={theme.colors.neon.pink} />
           Online: {userCount}
         </div>
-        <div className="presence-item">
-          🥁 Drums (You)
+        <div className="presence-item" style={{ color: theme.colors.neon.magenta }}>
+          Drums (You)
         </div>
       </div>
 
       {/* XY Pad with drum arc visualization */}
-      <XYPad onMove={handleMove} color="#f5576c">
+      <XYPad onMove={handleMove} color={theme.colors.neon.pink}>
         {audioStarted && (
-          <DrumsVisuals currentStep={currentStepRef.current} color="#f5576c" />
+          <DrumsVisuals currentStep={currentStepRef.current} color={theme.colors.neon.pink} />
         )}
       </XYPad>
 
@@ -261,18 +283,19 @@ export default function DrumsView() {
         textAlign: 'center',
         color: 'white',
         fontSize: '24px',
-        fontWeight: '600',
-        textShadow: '0 2px 4px rgba(0,0,0,0.5)',
+        fontWeight: '700',
+        textShadow: theme.shadows.glow.pink,
         pointerEvents: 'none',
       }}>
-        <div>🥁 Drums Control</div>
-        <div style={{ fontSize: '16px', marginTop: '12px', opacity: 0.8 }}>
+        <DrumsIcon size={64} color={theme.colors.neon.magenta} />
+        <div style={{ marginTop: '16px', color: theme.colors.neon.magenta }}>Drums Control</div>
+        <div style={{ fontSize: '16px', marginTop: '12px', opacity: 0.8, color: theme.colors.neon.cyan }}>
           Move cursor to control
         </div>
-        <div style={{ fontSize: '14px', marginTop: '8px', opacity: 0.7 }}>
+        <div style={{ fontSize: '14px', marginTop: '8px', opacity: 0.7, color: 'white' }}>
           X: Density • Y: Groove
         </div>
-        <div style={{ fontSize: '12px', marginTop: '12px', opacity: 0.6 }}>
+        <div style={{ fontSize: '12px', marginTop: '12px', opacity: 0.6, color: theme.colors.neon.yellow }}>
           {!audioStarted && '(Move cursor to start visualization)'}
           {audioStarted && '(Muted - Audio plays on Conductor only)'}
         </div>
@@ -281,16 +304,21 @@ export default function DrumsView() {
       {/* Param Display */}
       <div style={{
         position: 'absolute',
-        bottom: '20px',
+        bottom: '24px',
         left: '50%',
         transform: 'translateX(-50%)',
-        background: 'rgba(0,0,0,0.7)',
-        padding: '12px 20px',
-        borderRadius: '8px',
-        color: 'white',
-        fontSize: '14px',
+        background: theme.colors.bg.overlay,
+        padding: '16px 28px',
+        borderRadius: '12px',
+        color: theme.colors.neon.magenta,
+        fontSize: '16px',
         display: 'flex',
-        gap: '20px',
+        gap: '32px',
+        border: `2px solid ${theme.colors.neon.pink}`,
+        boxShadow: theme.shadows.glow.pink,
+        backdropFilter: 'blur(10px)',
+        fontWeight: '700',
+        fontFamily: theme.typography.fontMono
       }}>
         <div>Density: {(params.x * 100).toFixed(0)}%</div>
         <div>Groove: {(params.y * 100).toFixed(0)}%</div>

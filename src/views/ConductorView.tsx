@@ -7,6 +7,10 @@ import { useResolvedRoomId } from '../hooks/useResolvedRoomId'
 import BassVisuals from '../instruments/bass/BassVisuals'
 import DrumsVisuals from '../instruments/drums/DrumsVisuals'
 import type { PresenceState } from '../types/presence'
+import { theme } from '../design/theme'
+import BassIcon from '../components/icons/BassIcon'
+import DrumsIcon from '../components/icons/DrumsIcon'
+import MusicIcon from '../components/icons/MusicIcon'
 
 export default function ConductorView() {
   const [searchParams] = useSearchParams()
@@ -100,19 +104,20 @@ export default function ConductorView() {
   }, [isHost, togglePlay])
 
   if (!roomId) {
-    return <div className="loading">No room ID provided</div>
+    return <div className="loading" style={{ background: theme.colors.bg.primary, color: theme.colors.neon.cyan }}>No room ID provided</div>
   }
 
   return (
     <div
       className="fullscreen"
       style={{
-        background: '#0a0a0a',
+        background: theme.colors.bg.primary,
         padding: '40px',
         display: 'flex',
         flexDirection: 'column',
         gap: '30px',
         position: 'relative',
+        overflow: 'hidden'
       }}
     >
       {/* Audio Start Overlay */}
@@ -125,51 +130,53 @@ export default function ConductorView() {
             left: 0,
             right: 0,
             bottom: 0,
-            background: 'rgba(0,0,0,0.9)',
+            background: theme.colors.bg.overlay,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '20px',
+            gap: '32px',
             cursor: 'pointer',
             zIndex: 1000,
-            backdropFilter: 'blur(10px)',
+            backdropFilter: 'blur(20px)',
           }}
         >
+          <MusicIcon size={120} color={theme.colors.neon.cyan} />
           <div style={{
-            fontSize: '120px',
-            animation: 'pulse 2s infinite',
-          }}>
-            🎵
-          </div>
-          <div style={{
-            color: 'white',
-            fontSize: '48px',
-            fontWeight: '700',
+            color: theme.colors.neon.cyan,
+            fontSize: '52px',
+            fontWeight: '800',
             textAlign: 'center',
+            textShadow: theme.shadows.glow.cyan,
+            letterSpacing: '2px'
           }}>
             Tap to Start Audio
           </div>
           <div style={{
-            color: 'rgba(255,255,255,0.7)',
-            fontSize: '20px',
+            color: theme.colors.neon.magenta,
+            fontSize: '22px',
             textAlign: 'center',
             maxWidth: '600px',
+            fontWeight: '600'
           }}>
             {isPlaying ? 'Music is playing! Click anywhere to hear it.' : 'Start playback to enable audio'}
           </div>
         </div>
       )}
       {/* Header */}
-      <h1 style={{
-        color: 'white',
-        fontSize: '48px',
-        fontWeight: '700',
-        textShadow: '0 2px 8px rgba(0,0,0,0.5)',
-        textAlign: 'center',
-      }}>
-        📺 JamSync Conductor
-      </h1>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
+        <MusicIcon size={48} color={theme.colors.neon.cyan} />
+        <h1 style={{
+          color: theme.colors.neon.cyan,
+          fontSize: '48px',
+          fontWeight: '800',
+          textShadow: theme.shadows.glow.cyan,
+          textAlign: 'center',
+          letterSpacing: '2px'
+        }}>
+          JamSync Conductor
+        </h1>
+      </div>
 
       {/* Loop Progress */}
       <div style={{

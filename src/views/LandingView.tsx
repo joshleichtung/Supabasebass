@@ -1,6 +1,11 @@
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { createRoom as createRoomDB, joinRoom as joinRoomDB } from '../lib/room-manager'
+import { theme } from '../design/theme'
+import BassIcon from '../components/icons/BassIcon'
+import DrumsIcon from '../components/icons/DrumsIcon'
+import ConductorIcon from '../components/icons/ConductorIcon'
+import MusicIcon from '../components/icons/MusicIcon'
 
 export default function LandingView() {
   const navigate = useNavigate()
@@ -62,17 +67,49 @@ export default function LandingView() {
 
   if (loading) {
     return (
-      <div className="loading">
-        <div>Loading...</div>
+      <div className="loading" style={{ background: theme.colors.bg.primary }}>
+        <div style={{
+          color: theme.colors.neon.cyan,
+          fontSize: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px'
+        }}>
+          <MusicIcon size={32} color={theme.colors.neon.cyan} />
+          Loading...
+        </div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="fullscreen" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '20px' }}>
-        <h1 style={{ color: 'white', fontSize: '48px' }}>JamSync</h1>
-        <div style={{ background: 'rgba(239, 68, 68, 0.9)', padding: '16px 24px', borderRadius: '8px', color: 'white' }}>
+      <div className="fullscreen" style={{
+        background: theme.colors.bg.primary,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '32px'
+      }}>
+        <h1 style={{
+          color: theme.colors.neon.cyan,
+          fontSize: '56px',
+          fontWeight: '800',
+          textShadow: theme.shadows.glow.cyan,
+          letterSpacing: '2px'
+        }}>
+          JamSync
+        </h1>
+        <div style={{
+          background: theme.colors.bg.overlay,
+          padding: '20px 32px',
+          borderRadius: '12px',
+          color: theme.colors.neon.pink,
+          border: `2px solid ${theme.colors.neon.pink}`,
+          boxShadow: theme.shadows.glow.pink,
+          backdropFilter: 'blur(10px)'
+        }}>
           {error}
         </div>
         <button
@@ -81,14 +118,26 @@ export default function LandingView() {
             navigate('/')
           }}
           style={{
-            padding: '12px 24px',
+            padding: '14px 32px',
             fontSize: '16px',
-            borderRadius: '8px',
-            border: 'none',
-            background: 'white',
-            color: '#667eea',
+            borderRadius: '12px',
+            border: `2px solid ${theme.colors.neon.cyan}`,
+            background: 'transparent',
+            color: theme.colors.neon.cyan,
             cursor: 'pointer',
-            fontWeight: '600'
+            fontWeight: '700',
+            transition: 'all 0.3s',
+            textShadow: theme.shadows.glow.cyan,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = theme.colors.neon.cyan
+            e.currentTarget.style.color = theme.colors.bg.primary
+            e.currentTarget.style.boxShadow = theme.shadows.glow.cyan
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'transparent'
+            e.currentTarget.style.color = theme.colors.neon.cyan
+            e.currentTarget.style.boxShadow = 'none'
           }}
         >
           Back to Home
@@ -107,118 +156,264 @@ export default function LandingView() {
 
   if (roomId && shareCode) {
     return (
-      <div className="fullscreen" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '20px' }}>
-        <h1 style={{ color: 'white', fontSize: '48px' }}>JamSync</h1>
+      <div className="fullscreen" style={{
+        background: theme.colors.bg.primary,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '40px'
+      }}>
+        <h1 style={{
+          color: theme.colors.neon.cyan,
+          fontSize: '56px',
+          fontWeight: '800',
+          textShadow: theme.shadows.glow.cyan,
+          letterSpacing: '2px',
+          marginBottom: '20px'
+        }}>
+          JamSync
+        </h1>
+
+        {/* Room Code Display */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '12px',
-          background: 'rgba(255,255,255,0.1)',
-          padding: '16px 24px',
-          borderRadius: '12px',
+          gap: '16px',
+          background: theme.colors.bg.overlay,
+          padding: '20px 32px',
+          borderRadius: '16px',
+          border: `2px solid ${theme.colors.neon.purple}`,
+          boxShadow: theme.shadows.glow.purple,
           backdropFilter: 'blur(10px)'
         }}>
-          <span style={{ color: 'white', fontSize: '24px', fontWeight: '700', letterSpacing: '2px', userSelect: 'all' }}>
+          <span style={{
+            color: theme.colors.neon.yellow,
+            fontSize: '32px',
+            fontWeight: '800',
+            letterSpacing: '4px',
+            userSelect: 'all',
+            fontFamily: theme.typography.fontMono,
+            textShadow: `0 0 10px ${theme.colors.neon.yellow}`
+          }}>
             {shareCode}
           </span>
           <button
             onClick={copyRoomCode}
             style={{
-              padding: '8px 16px',
+              padding: '10px 20px',
               fontSize: '14px',
               borderRadius: '8px',
-              border: 'none',
-              background: copied ? '#10b981' : 'rgba(255,255,255,0.2)',
-              color: 'white',
+              border: `2px solid ${copied ? theme.colors.state.success : theme.colors.neon.cyan}`,
+              background: 'transparent',
+              color: copied ? theme.colors.state.success : theme.colors.neon.cyan,
               cursor: 'pointer',
-              fontWeight: '600',
+              fontWeight: '700',
               transition: 'all 0.2s',
-              minWidth: '90px'
-            }}
-            onMouseEnter={(e) => {
-              if (!copied) e.currentTarget.style.background = 'rgba(255,255,255,0.3)'
-            }}
-            onMouseLeave={(e) => {
-              if (!copied) e.currentTarget.style.background = 'rgba(255,255,255,0.2)'
+              minWidth: '100px'
             }}
           >
-            {copied ? '✓ Copied!' : '📋 Copy'}
+            {copied ? '✓ Copied!' : 'Copy'}
           </button>
         </div>
-        <div style={{ display: 'flex', gap: '16px' }}>
+
+        {/* Instrument Selection */}
+        <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', justifyContent: 'center' }}>
           <button
             onClick={() => navigate(`/bass?r=${roomId}`)}
             style={{
-              padding: '20px 40px',
+              padding: '24px 40px',
               fontSize: '18px',
-              borderRadius: '12px',
-              border: 'none',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              borderRadius: '16px',
+              border: `3px solid ${theme.colors.neon.blue}`,
+              background: theme.colors.gradient.bass,
               color: 'white',
               cursor: 'pointer',
-              fontWeight: '600'
+              fontWeight: '700',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '12px',
+              minWidth: '180px',
+              transition: 'all 0.3s',
+              boxShadow: theme.shadows.elevation.mid
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-4px)'
+              e.currentTarget.style.boxShadow = theme.shadows.elevation.high
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)'
+              e.currentTarget.style.boxShadow = theme.shadows.elevation.mid
             }}
           >
-            🎸 Bass
+            <BassIcon size={48} color="white" />
+            <span>Bass</span>
           </button>
           <button
             onClick={() => navigate(`/drums?r=${roomId}`)}
             style={{
-              padding: '20px 40px',
+              padding: '24px 40px',
               fontSize: '18px',
-              borderRadius: '12px',
-              border: 'none',
-              background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+              borderRadius: '16px',
+              border: `3px solid ${theme.colors.neon.pink}`,
+              background: theme.colors.gradient.drums,
               color: 'white',
               cursor: 'pointer',
-              fontWeight: '600'
+              fontWeight: '700',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '12px',
+              minWidth: '180px',
+              transition: 'all 0.3s',
+              boxShadow: theme.shadows.elevation.mid
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-4px)'
+              e.currentTarget.style.boxShadow = theme.shadows.elevation.high
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)'
+              e.currentTarget.style.boxShadow = theme.shadows.elevation.mid
             }}
           >
-            🥁 Drums
+            <DrumsIcon size={48} color="white" />
+            <span>Drums</span>
           </button>
         </div>
+
+        {/* Conductor Button */}
         <button
           onClick={() => navigate(`/conductor?r=${roomId}`)}
           style={{
-            padding: '12px 24px',
-            fontSize: '14px',
-            borderRadius: '8px',
-            border: '2px solid white',
+            padding: '16px 32px',
+            fontSize: '16px',
+            borderRadius: '12px',
+            border: `2px solid ${theme.colors.neon.cyan}`,
             background: 'transparent',
-            color: 'white',
+            color: theme.colors.neon.cyan,
             cursor: 'pointer',
-            marginTop: '20px'
+            fontWeight: '700',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            transition: 'all 0.3s'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = theme.colors.neon.cyan
+            e.currentTarget.style.color = theme.colors.bg.primary
+            e.currentTarget.style.boxShadow = theme.shadows.glow.cyan
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'transparent'
+            e.currentTarget.style.color = theme.colors.neon.cyan
+            e.currentTarget.style.boxShadow = 'none'
           }}
         >
-          📺 Conductor View
+          <ConductorIcon size={24} color="currentColor" />
+          Conductor View
         </button>
       </div>
     )
   }
 
   return (
-    <div className="fullscreen" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '30px' }}>
-      <h1 style={{ color: 'white', fontSize: '72px', textShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}>JamSync</h1>
-      <p style={{ color: 'white', fontSize: '20px', opacity: 0.9 }}>Multiplayer jam space</p>
+    <div className="fullscreen" style={{
+      background: theme.colors.bg.primary,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '48px',
+      position: 'relative',
+      overflow: 'hidden'
+    }}>
+      {/* Animated background gradient circles */}
+      <div style={{
+        position: 'absolute',
+        top: '20%',
+        left: '10%',
+        width: '400px',
+        height: '400px',
+        background: theme.colors.gradient.bass,
+        borderRadius: '50%',
+        filter: 'blur(100px)',
+        opacity: 0.15,
+        animation: 'float 20s ease-in-out infinite'
+      }} />
+      <div style={{
+        position: 'absolute',
+        bottom: '20%',
+        right: '10%',
+        width: '400px',
+        height: '400px',
+        background: theme.colors.gradient.drums,
+        borderRadius: '50%',
+        filter: 'blur(100px)',
+        opacity: 0.15,
+        animation: 'float 15s ease-in-out infinite reverse'
+      }} />
+
+      <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
+        <MusicIcon size={80} color={theme.colors.neon.cyan} />
+        <h1 style={{
+          color: theme.colors.neon.cyan,
+          fontSize: '80px',
+          fontWeight: '900',
+          textShadow: theme.shadows.glow.cyan,
+          letterSpacing: '4px',
+          marginTop: '20px',
+          marginBottom: '12px'
+        }}>
+          JamSync
+        </h1>
+        <p style={{
+          color: theme.colors.neon.magenta,
+          fontSize: '24px',
+          fontWeight: '600',
+          opacity: 0.9,
+          letterSpacing: '1px'
+        }}>
+          Multiplayer jam space
+        </p>
+      </div>
 
       <button
         onClick={createRoom}
         style={{
-          padding: '20px 60px',
-          fontSize: '24px',
+          padding: '24px 64px',
+          fontSize: '28px',
           borderRadius: '16px',
-          border: 'none',
-          background: 'white',
-          color: '#667eea',
+          border: `3px solid ${theme.colors.neon.cyan}`,
+          background: theme.colors.gradient.primary,
+          color: 'white',
           cursor: 'pointer',
-          fontWeight: '700',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.2)'
+          fontWeight: '800',
+          boxShadow: theme.shadows.elevation.high,
+          transition: 'all 0.3s',
+          position: 'relative',
+          zIndex: 1
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'scale(1.05)'
+          e.currentTarget.style.boxShadow = theme.shadows.glow.strong
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1)'
+          e.currentTarget.style.boxShadow = theme.shadows.elevation.high
         }}
       >
         Create New Room
       </button>
 
-      <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
+      <div style={{
+        display: 'flex',
+        gap: '16px',
+        marginTop: '20px',
+        position: 'relative',
+        zIndex: 1
+      }}>
         <input
           type="text"
           placeholder="Enter room code"
@@ -226,30 +421,54 @@ export default function LandingView() {
           onChange={(e) => setRoomCode(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && joinRoom()}
           style={{
-            padding: '12px 20px',
-            fontSize: '16px',
-            borderRadius: '8px',
-            border: '2px solid white',
-            background: 'rgba(255,255,255,0.9)',
-            width: '200px'
+            padding: '16px 24px',
+            fontSize: '18px',
+            borderRadius: '12px',
+            border: `2px solid ${theme.colors.neon.purple}`,
+            background: theme.colors.bg.overlay,
+            color: theme.colors.neon.cyan,
+            width: '240px',
+            fontWeight: '700',
+            fontFamily: theme.typography.fontMono,
+            letterSpacing: '2px',
+            textAlign: 'center',
+            backdropFilter: 'blur(10px)'
           }}
         />
         <button
           onClick={joinRoom}
           style={{
-            padding: '12px 30px',
-            fontSize: '16px',
-            borderRadius: '8px',
-            border: 'none',
-            background: 'white',
-            color: '#667eea',
+            padding: '16px 40px',
+            fontSize: '18px',
+            borderRadius: '12px',
+            border: `2px solid ${theme.colors.neon.magenta}`,
+            background: 'transparent',
+            color: theme.colors.neon.magenta,
             cursor: 'pointer',
-            fontWeight: '600'
+            fontWeight: '700',
+            transition: 'all 0.3s'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = theme.colors.neon.magenta
+            e.currentTarget.style.color = 'white'
+            e.currentTarget.style.boxShadow = theme.shadows.glow.pink
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'transparent'
+            e.currentTarget.style.color = theme.colors.neon.magenta
+            e.currentTarget.style.boxShadow = 'none'
           }}
         >
           Join
         </button>
       </div>
+
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translate(0, 0); }
+          50% { transform: translate(50px, -50px); }
+        }
+      `}</style>
     </div>
   )
 }

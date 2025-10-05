@@ -1,141 +1,131 @@
-# 🎯 Supabase Realtime Demo: Collaborative Cursor Tracker
+# JamSync
 
-A lightweight prototype demonstrating **Supabase Broadcast** and **Presence** features for real-time collaboration.
+**Turn idle cycles into creative cycles.**
+A multiplayer jam space for teams waiting on AI agents, builds, or long jobs.
+Browser-based. Real-time sync via Supabase. Designed for demos.
 
-## What This Demonstrates
+👉 **Live:** https://jamsync.fly.dev/
 
-### ✅ **Broadcast**
-- Low-latency cursor position updates between clients
-- `channel.send()` to broadcast events
-- `channel.on('broadcast')` to receive events
+---
 
-### ✅ **Presence**
-- Track who's online in real-time
-- Share user metadata (name, color)
-- Auto-cleanup when users leave
-- `channel.track()` to share state
-- `channel.presenceState()` to get all users
+## What it is
+JamSync lets a room of people create music together from their browsers while everything stays **in time** and **in key**. Each player controls an instrument with a simple XY pad (e.g., Bass = Density × Complexity; Drums = Density × Groove). A projector-friendly **Conductor** view shows live visualizers, presence, tempo, and key.
 
-## Setup Instructions
+### Why Supabase
+- **Realtime channels** for transport (tempo, bar, play/stop, key) and presence.
+- **Postgres + RLS** for durable state (room, instrument params) so reconnects recover cleanly.
+- **Low-latency fan-out** that works great for a musical control surface.
 
-### 1. Wait for Supabase to Start
+### Key features
+- Shared clock with **bar-aligned corrections** for musical tightness
+- **Presence & roles** (who's Bass, who's Drums, who's Conductor)
+- **Conductor view** (2×2 tiles with live visualizers, FX controls)
+- **Tablet-friendly, full-screen controls**
+- **Web Audio API** synthesis (bass synth, drum machine)
+
+---
+
+## 30-second try (no account)
+1. Open the live app: https://jamsync.fly.dev/
+2. Click **Create Room**. Keep the room code handy.
+3. Open two more tabs: join as **/bass** and **/drums**.
+4. Open the **/conductor** view (projector-friendly).
+5. Press **Play** on Conductor.
+6. Move the **XY pads** on bass/drums tabs. Changes mirror on Conductor and stay locked to the bar.
+   *(Tip: Audio plays from the Conductor tab; click to unlock audio.)*
+
+---
+
+## Tech Stack
+- **Frontend:** React, Vite, TypeScript, Tone.js (Web Audio)
+- **Realtime & data:** Supabase Realtime (Broadcast + Presence), Postgres (RLS)
+- **Hosting:** Fly.io (Docker + nginx)
+- **Database:** PostgreSQL via Supabase
+
+---
+
+## Architecture
+
+### Realtime Channels
+Each room uses dedicated Supabase channels:
+- **presence**: Who's online, their instrument role
+- **transport**: Tempo, key, play/pause state, bar timing
+- **bass**, **drums**: Instrument parameter broadcasts (XY position, FX)
+
+### Local Audio Timing
+The **Conductor** plays all instruments locally using Tone.js, avoiding network jitter. Instruments only broadcast their parameters; the Conductor schedules all notes against a shared musical clock.
+
+### Database Schema
+```sql
+rooms              -- Room metadata
+transport          -- Tempo, key, playback state per room
+progression        -- Chord progression (future use)
+instrument_params  -- Persistent instrument settings (future use)
+```
+
+Row Level Security (RLS) policies allow anonymous read/write for demo purposes.
+
+---
+
+## Local Development
+
+### Prerequisites
+- Node.js 18+
+- Supabase account (free tier works)
+
+### Setup
 ```bash
-# Currently running in background...
-# You'll see "Started supabase local development setup" when ready
+# Clone and install
+npm install
+
+# Create .env with your Supabase credentials
+cp .env.example .env
+# Edit .env with your VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY
+
+# Run database migrations (requires Supabase CLI)
+supabase link --project-ref YOUR_PROJECT_REF
+supabase db push
+
+# Start dev server
+npm run dev
 ```
 
-### 2. Get Your Credentials
+Visit `http://localhost:5173`
+
+---
+
+## Deployment
+
+### Fly.io
 ```bash
-supabase status
+# Install flyctl
+brew install flyctl
+
+# Login to Fly
+flyctl auth login
+
+# Deploy (already configured in fly.toml)
+flyctl deploy
 ```
 
-Look for:
-- **API URL**: `http://127.0.0.1:54321`
-- **anon key**: (long JWT token)
+The app is configured for auto-stop/start to minimize costs.
 
-### 3. Update app.js
-Open `app.js` and replace:
-```javascript
-const SUPABASE_URL = 'http://127.0.0.1:54321'
-const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY_HERE'  // ← Paste your anon key
-```
+---
 
-### 4. Open in Browser
-```bash
-# Simple Python server:
-python3 -m http.server 8000
+## The pitch
+The modern "my code's compiling" is **"AGENT'S RUNNING."** JamSync turns that wait into a live, collaborative moment that keeps the room engaged and your demo alive.
 
-# Or use any local server
-```
+---
 
-Visit: `http://localhost:8000`
+## Future Ideas
+- **More instruments:** Harmony (pad chords), Melody (lead synth)
+- **Chord progression editor:** Real-time chord changes
+- **Recording & playback:** Save jam sessions
+- **Better mobile support:** Touch-optimized controls
+- **Authentication:** Named users, saved sessions
+- **Datadog RUM:** Engagement analytics
 
-### 5. Test It!
-1. Open the page in **multiple browser tabs**
-2. Move your mouse in each tab
-3. Watch cursors appear and move in real-time!
-4. Close a tab and watch the user disappear from the sidebar
+---
 
-## Key Code Concepts
-
-### Creating a Channel
-```javascript
-const channel = supabase.channel('cursor-room', {
-    config: {
-        presence: { key: userId },
-        broadcast: { self: false }
-    }
-})
-```
-
-### Tracking Presence
-```javascript
-await channel.track({
-    user_id: userId,
-    name: userName,
-    color: userColor
-})
-```
-
-### Broadcasting Data
-```javascript
-channel.send({
-    type: 'broadcast',
-    event: 'cursor-move',
-    payload: { x, y, user_id }
-})
-```
-
-### Listening for Events
-```javascript
-channel
-    .on('presence', { event: 'sync' }, () => {
-        const users = channel.presenceState()
-    })
-    .on('broadcast', { event: 'cursor-move' }, ({ payload }) => {
-        updateCursor(payload)
-    })
-```
-
-## How to Apply This to Your Music App
-
-### Presence → Track Musicians
-```javascript
-await channel.track({
-    user_id: userId,
-    instrument: 'piano',
-    muted: false,
-    volume: 0.8
-})
-```
-
-### Broadcast → Send Note Events
-```javascript
-channel.send({
-    type: 'broadcast',
-    event: 'note-played',
-    payload: {
-        note: 'C4',
-        velocity: 100,
-        timestamp: Date.now()
-    }
-})
-```
-
-### Sync → Timing and Playback
-- Use presence for "who's in the session"
-- Use broadcast for real-time note events
-- Consider Postgres Changes for saving/loading compositions
-
-## Resources
-
-- [Supabase Realtime Docs](https://supabase.com/docs/guides/realtime)
-- [Broadcast Guide](https://supabase.com/docs/guides/realtime/broadcast)
-- [Presence Guide](https://supabase.com/docs/guides/realtime/presence)
-
-## Next Steps
-
-- Add **Postgres Changes** for database-backed features
-- Implement **authorization** with RLS policies
-- Scale up with rate limiting and connection management
-- Deploy to production Supabase instance
+## License
+MIT
