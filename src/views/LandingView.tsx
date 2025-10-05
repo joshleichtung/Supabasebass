@@ -423,33 +423,61 @@ export default function LandingView() {
         </p>
       </div>
 
-      <button
-        onClick={createRoom}
-        style={{
-          padding: '24px 64px',
-          fontSize: '28px',
-          borderRadius: '16px',
-          border: `3px solid ${theme.colors.neon.cyan}`,
-          background: theme.colors.gradient.primary,
-          color: 'white',
-          cursor: 'pointer',
-          fontWeight: '800',
-          boxShadow: theme.shadows.elevation.high,
-          transition: 'all 0.3s',
-          position: 'relative',
-          zIndex: 1
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'scale(1.05)'
-          e.currentTarget.style.boxShadow = theme.shadows.glow.strong
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'scale(1)'
-          e.currentTarget.style.boxShadow = theme.shadows.elevation.high
-        }}
-      >
-        Create New Room
-      </button>
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '20px',
+        position: 'relative',
+        zIndex: 1
+      }}>
+        <button
+          onClick={createRoom}
+          style={{
+            padding: '24px 64px',
+            fontSize: '28px',
+            borderRadius: '16px',
+            border: `3px solid ${theme.colors.neon.cyan}`,
+            background: theme.colors.gradient.primary,
+            color: 'white',
+            cursor: 'pointer',
+            fontWeight: '800',
+            boxShadow: theme.shadows.elevation.high,
+            transition: 'all 0.3s'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.05)'
+            e.currentTarget.style.boxShadow = theme.shadows.glow.strong
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1)'
+            e.currentTarget.style.boxShadow = theme.shadows.elevation.high
+          }}
+        >
+          Create New Room
+        </button>
+
+        <div style={{
+          maxWidth: '500px',
+          background: theme.colors.bg.overlay,
+          padding: '20px 28px',
+          borderRadius: '12px',
+          border: `2px solid ${theme.colors.neon.purple}`,
+          backdropFilter: 'blur(10px)',
+          textAlign: 'center'
+        }}>
+          <p style={{
+            color: theme.colors.neon.cyan,
+            fontSize: '15px',
+            lineHeight: '1.6',
+            margin: 0
+          }}>
+            Creates a room and gives you a <strong style={{ color: theme.colors.neon.yellow }}>shareable code</strong>.
+            Open <strong style={{ color: theme.colors.neon.blue }}>Bass</strong> and <strong style={{ color: theme.colors.neon.pink }}>Drums</strong> on different devices,
+            then launch <strong style={{ color: theme.colors.neon.cyan }}>Stage View</strong> on your main screen to hear it all.
+          </p>
+        </div>
+      </div>
 
       <div style={{
         display: 'flex',
