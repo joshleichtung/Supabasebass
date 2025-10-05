@@ -55,11 +55,13 @@ export default function BassView() {
   }, [roomId])
 
   // Start audio context (required for visualization)
-  const startAudio = useCallback(async () => {
+  const startAudio = useCallback(() => {
     if (!audioStarted) {
-      await Tone.start()
-      await bassEngineRef.current?.start()
-      setAudioStarted(true)
+      // Call Tone.start() synchronously for iOS compatibility
+      Tone.start().then(() => {
+        bassEngineRef.current?.start()
+        setAudioStarted(true)
+      })
     }
   }, [audioStarted])
 

@@ -71,11 +71,13 @@ export default function DrumsView() {
   }, [roomId])
 
   // Start audio context (required for visualization)
-  const startAudio = useCallback(async () => {
+  const startAudio = useCallback(() => {
     if (!audioStarted) {
-      await Tone.start()
-      await drumsEngineRef.current?.start()
-      setAudioStarted(true)
+      // Call Tone.start() synchronously for iOS compatibility
+      Tone.start().then(() => {
+        drumsEngineRef.current?.start()
+        setAudioStarted(true)
+      })
     }
   }, [audioStarted])
 

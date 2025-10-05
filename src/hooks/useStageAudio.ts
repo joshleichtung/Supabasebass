@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { RealtimeChannel } from '@supabase/supabase-js'
+import * as Tone from 'tone'
 import { supabase } from '../lib/supabase'
 import { channelNames } from '../realtime/channels'
 import { BassEngine } from '../instruments/bass/BassEngine'
@@ -129,12 +130,15 @@ export function useStageAudio(roomId: string | null, transport: TransportState) 
   }, [drumsParams, drumsFX])
 
   // Start audio (requires user interaction)
-  const startAudio = useCallback(async () => {
+  const startAudio = useCallback(() => {
     if (audioStarted) return
 
-    await bassEngineRef.current?.start()
-    await drumsEngineRef.current?.start()
-    setAudioStarted(true)
+    // Call Tone.start() synchronously for iOS compatibility
+    Tone.start().then(() => {
+      bassEngineRef.current?.start()
+      drumsEngineRef.current?.start()
+      setAudioStarted(true)
+    })
   }, [audioStarted])
 
   // RAF loop for visual updates (decoupled from audio)
